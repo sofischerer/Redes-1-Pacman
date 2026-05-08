@@ -97,7 +97,7 @@ void print_jogo(type_board* jogo){
 }
 
 /*
-    Primeiro argumento = mapa de entrada em csv
+    
 */
 int main(int argc, char *argv[]){
 

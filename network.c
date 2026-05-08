@@ -45,10 +45,15 @@ int recebe_pacote(int socket){
     int buffer[100];
     int teste = recv(socket, buffer, sizeof(buffer), 0);
 
-    if (teste > 0)return 1;
+    if (teste > 0){
+        printf("%d", buffer[0]);
+        return 1;
+    }
     return 0;
 }
 
-int enviar_pacote(int socket){
-    
+int enviar_pacote(int socket, char* buffer, int size){
+    int x = send(socket, buffer, size, 0);
+    printf("%d", x);
+    return 1;
 }
