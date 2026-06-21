@@ -10,6 +10,7 @@
 #include <sys/socket.h>
 #include <stdio.h>
 
+
 //Definição do protocolo
 //CRC é colocado manualmente depois
 struct __attribute__((packed)) protocolo{
@@ -66,7 +67,7 @@ int cria_raw_socket(char* nome_interface_rede) {
     return soquete;
 }
 
-void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int tipo, int sequencia){
+void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int tipo, int sequencia, uint8_t* MAC_dest, uint8_t* MAC_ori){
     //Cria o "envelope" da ethernet
     unsigned char buffer_eth[ETH_FRAME_LEN] = {0};
 
@@ -80,14 +81,14 @@ void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int ti
     destino.sll_protocol = htons(ETH_P_ALL);
     destino.sll_halen    = ETH_ALEN;
 
-    //Coloca MAC Adress como 0, preciso usar um mac válido no escopo do trabalho?
-    memset(destino.sll_addr, 0, ETH_ALEN);
+    //Coloca MAC Adress na sock
+    memcpy(destino.sll_addr, MAC_dest, ETH_ALEN);
 
     struct ethhdr *eth = (struct ethhdr *) buffer_eth;
 
-    //Coloca o MAC Adress como 0 tanto no destino quanto na origem
-    memset(eth->h_dest, 0, ETH_ALEN);
-    memset(eth->h_source, 0, ETH_ALEN);
+    //Coloca o MAC Adress no destino na parte do eth
+    memcpy(eth->h_dest, MAC_dest, ETH_ALEN);
+    memcpy(eth->h_source, MAC_ori, ETH_ALEN);
 
     //ID do meu protocolo
     eth->h_proto = htons(0x8888);
@@ -118,36 +119,36 @@ void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int ti
     memcpy(buffer_eth+sizeof(struct ethhdr), buffer, header_size+tamanho+1);
 
     //ADICIONAR PARTE DE ENVIO
-    int tamanho_total =
-    sizeof(struct ethhdr) +
-    header_size +
-    tamanho +
-    1; // CRC
+    int tamanho_total = sizeof(struct ethhdr) + header_size + tamanho + 1;
 
-    if (sendto(sock,
-            buffer_eth,
-            tamanho_total,
-            0,
-            (struct sockaddr*)&destino,
-            sizeof(destino)) < 0)
-    {
-        perror("sendto");
-    }
+    sendto(sock, buffer_eth, tamanho_total, 0, (struct sockaddr*)&destino, sizeof(destino));
 
     //ADICIONAR PARA E ESPERA
 
     //ADICIONAR TIMEOUT
 }
 
+
 void recebe_pacote(int sock, uint8_t* mensagem){
-    //Cria frame buffer para receber a mensagem
     unsigned char frame[ETH_FRAME_LEN];
-    int dados = recv(sock, frame, sizeof(frame), 0);
+    
+    //Usados para retirar a duplicação da loopback
+    struct sockaddr_ll origem;
+    socklen_t origem_len = sizeof(origem);
+
+    int dados = recvfrom(sock, frame, sizeof(frame), 0, (struct sockaddr *)&origem, &origem_len);
+
+    // Se o pacote foi enviado por esta mesma máquina, ignore-o
+    if (origem.sll_pkttype == PACKET_OUTGOING) {
+        return; 
+    }
 
     struct ethhdr *eth = (struct ethhdr *) frame;
 
-    if (ntohs(eth->h_proto) == 0x8888) printf("success\n");
-    //Extrai dados
-    // struct ethhdr *eth = (struct ethhdr *) frame; //Extrai o cabeçalho ETH
-    // struct protocolo *header = (struct protocolo *)(frame + sizeof(struct ethhdr)); //Extrai o header do protocolo
+    if (ntohs(eth->h_proto) == 0x8888){
+        printf("success\n");
+        printf("MAC origem: %02x:%02x:%02x:%02x:%02x:%02x\n",
+            eth->h_source[0], eth->h_source[1], eth->h_source[2],
+            eth->h_source[3], eth->h_source[4], eth->h_source[5]);
+    }
 }
