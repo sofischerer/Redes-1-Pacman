@@ -1,0 +1,164 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
+//#include "network.h"
+#include "server.h"
+
+/* isso vai no client.c */
+#ifndef CLIENT_H
+#define CLIENT_H
+
+# ifndef KEYS
+# define KEYS
+# define KEY_W 119
+# define KEY_A 97
+# define KEY_D 100
+# define KEY_S 115
+# define KEY_Q 113
+# define GAME_QUIT 0
+# define GAME_RUNNING 1
+# define GAME_PAUSED 2
+# define GAME_OVER 3
+# define GAME_WIN 4
+# endif
+
+// int mygetch ( void );
+
+#endif
+
+int mygetch ( void ) 
+{
+  int ch;
+  struct termios oldt, newt;
+  
+  tcgetattr ( STDIN_FILENO, &oldt );
+  newt = oldt;
+  newt.c_lflag &= ~( ICANON | ECHO );
+  tcsetattr ( STDIN_FILENO, TCSANOW, &newt );
+  ch = getchar();
+  tcsetattr ( STDIN_FILENO, TCSANOW, &oldt );
+  
+  return ch;
+}
+/*----------------*/
+
+int main(int argc, char *argv[]){
+    srand(0);
+    int ch;
+    int playing = GAME_RUNNING;
+    //Parametros
+    char* arquivo = "tabuleiro.csv";
+/*
+    char* rede = "lo";
+    int debug = 0;
+
+    for (int i = 1; i < argc; i++) {
+
+        if (strcmp(argv[i], "-debug") == 0) {
+            debug = 1;
+        }
+        else if (strcmp(argv[i], "-rede") == 0 && i + 1 < argc) {
+            rede = argv[++i];
+        }
+        else if (strcmp(argv[i], "-mapa") == 0 && i + 1 < argc) {
+            arquivo = argv[++i];
+        }
+    }
+*/
+    //Declarações
+    type_board* jogo;
+    jogo = malloc( sizeof( type_board));
+
+    FILE* entrada = fopen(arquivo, "r");
+    if (entrada == NULL){
+        perror("ERRO AO ABRIR ARQUIVO");
+        fclose(entrada);
+        return 1;
+    }
+
+    //Criar tabuleiro a partir do csv    
+    criar_jogo(entrada, jogo);
+    print_jogo(jogo);
+
+    //Inicia conexão
+    //int socket = cria_raw_socket(rede);
+    
+    
+    
+    //Começar jogo
+    //  while(1){
+
+    //}
+    while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
+        /* input de tecla ASDW */
+        ch = 0;
+        while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_Q))
+            ch = mygetch();
+        switch( ch){
+            case KEY_W:
+                /* UP */
+                jogo->P.dir = UP;
+                break;
+            case KEY_A:
+                /* LEFT */
+                jogo->P.dir = LEFT;
+                break;
+            case KEY_D:
+                /* RIGHT */
+                jogo->P.dir = RIGHT;
+                break;
+            case KEY_S:
+                /* DOWN */
+                jogo->P.dir = DOWN;
+                break;
+            case KEY_Q:
+                /* P = QUIT */
+                printf("\nQUIT\n");
+                playing = GAME_QUIT;
+                destruir_jogo(jogo);
+                fclose(entrada);
+                return 0;
+        }
+        if( playing == GAME_RUNNING)
+            switch( move_pac(jogo, ch)){
+                case HIT_WALL:
+                    break;
+                case HIT_GHOST:
+                    playing = GAME_OVER;
+                    break;
+                case COLLECTED_ALL:
+                    playing = GAME_WIN;
+                    break;
+            }
+            /*
+        if( playing == 1)
+            if( move_ghosts(jogo) == HIT_GHOST){
+                playing = LOSE;
+            }
+            */
+        print_jogo(jogo);
+    }
+
+    switch( playing){
+        case GAME_WIN:
+            for( int i = 0; i < 20; i++)
+                printf("\n");
+            printf("                            PARABÉNS! VOCÊ GANHOU\n");
+            for( int i = 0; i < 21; i++)
+                printf("\n");
+            break;
+        case GAME_OVER:
+            for( int i = 0; i < 20; i++)
+                printf("\n");
+            printf("                                    GAME OVER\n");
+            for( int i = 0; i < 21; i++)
+                printf("\n");
+            break;
+    }
+
+    /* TRASH */
+    destruir_jogo(jogo);
+    fclose(entrada);
+}
