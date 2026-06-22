@@ -3,9 +3,9 @@
 
 #define RANDOM(n) (rand() % n)
 #define UP 0
-#define LEFT 1
-#define RIGHT 2
-#define DOWN 3
+#define RIGHT 1
+#define DOWN 2
+#define LEFT 3
 #define HIT_WALL 1
 #define HIT_GHOST 2
 #define COLLECTED_ALL 3
@@ -50,9 +50,10 @@ typedef struct type_board{
 
 void criar_jogo(FILE* entrada, type_board* jogo);
 void destruir_jogo(type_board* jogo);
-void anda_interno(type_board* jogo, personagem* chara, char nome);
+void anda_interno(type_board* jogo, personagem* chara, char c);
+void vira_fan(personagem* chara, char c);
 int move_pac(type_board* jogo, int key);
-int move_fan(type_board* jogo, char chara);
+int move_fan(type_board* jogo, personagem* chara, char c);
 void print_jogo(type_board* jogo);
 
 #endif

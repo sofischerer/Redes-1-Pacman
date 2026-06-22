@@ -121,6 +121,8 @@ int main(int argc, char *argv[]){
                 fclose(entrada);
                 return 0;
         }
+
+        /* move os personagens */
         if( playing == GAME_RUNNING)
             switch( move_pac(jogo, ch)){
                 case HIT_WALL:
@@ -132,12 +134,36 @@ int main(int argc, char *argv[]){
                     playing = GAME_WIN;
                     break;
             }
+        if( playing == GAME_RUNNING){
+            if( move_fan(jogo, &(jogo->R), 'R') == HIT_GHOST){
+                playing = GAME_OVER;
+            }
             /*
-        if( playing == 1)
-            if( move_ghosts(jogo) == HIT_GHOST){
-                playing = LOSE;
+        if( playing == GAME_RUNNING)
+            if( move_fan(jogo, &(jogo->B), 'B') == HIT_GHOST){
+                playing = GAME_OVER;
+            }
+        if( playing == GAME_RUNNING){
+            if( move_fan(jogo, &(jogo->G), 'G') == HIT_GHOST){
+                playing = GAME_OVER;
+            }
+        }
+        if( playing == GAME_RUNNING)
+            if( move_fan(jogo, &(jogo->Y), 'Y') == HIT_GHOST){
+                playing = GAME_OVER;
             }
             */
+        }
+        if( playing == GAME_RUNNING){
+            /* se algum fantasma passou por cima de alguma pastilha, checa se eh para desenhar de volta */
+            for( int i = 0; i < 6; i++)
+                if( jogo->itens[i].status > 0){
+                    if( jogo->tabuleiro[jogo->itens[i].pos.y][jogo->itens[i].pos.x] == '0'){
+                        jogo->tabuleiro[jogo->itens[i].pos.y][jogo->itens[i].pos.x] = i + '1';
+                        jogo->itens[i].status = 0;
+                    }
+                }
+        }
         print_jogo(jogo);
     }
 

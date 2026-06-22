@@ -87,9 +87,9 @@ void destruir_jogo(type_board* jogo){
     free(jogo);
 }
 
-void anda_interno(type_board* jogo, personagem* chara, char nome){
+void anda_interno(type_board* jogo, personagem* chara, char c){
     jogo->tabuleiro[chara->pos.y][chara->pos.x] = '0';
-    switch( chara->dir){
+    switch( (chara->dir) % 4){
         case UP:
             chara->pos.y--;
             break;
@@ -103,7 +103,35 @@ void anda_interno(type_board* jogo, personagem* chara, char nome){
             chara->pos.y++;
             break;
     }
-    jogo->tabuleiro[chara->pos.y][chara->pos.x] = nome;
+    jogo->tabuleiro[chara->pos.y][chara->pos.x] = c;
+}
+
+int horario( int dir){
+    return( (dir + 1) % 4);
+}
+
+int antihorario( int dir){
+    return( ((dir + 3) % 4) + 4);
+}
+
+void vira_fan(personagem* chara, char c){
+    switch( c){
+        case 'R':
+            chara->dir = horario( chara->dir);
+            break;
+        case 'B':
+            chara->dir = antihorario( chara->dir);
+            break;
+        case 'G':
+            if( chara->dir < 4)
+                chara->dir = horario( chara->dir);
+            else
+                chara->dir = antihorario( chara->dir);
+            break;
+        case 'Y':
+            chara->dir = RANDOM(4);
+            break;
+    }
 }
 
 int move_pac(type_board* jogo, int key){
@@ -161,12 +189,60 @@ int move_pac(type_board* jogo, int key){
             break;
         default:
             /* fantasma */
-
-
-
-            /* */
             return HIT_GHOST;
     }
+    return 0;
+}
+
+int move_fan(type_board* jogo, personagem* chara, char c){
+    int andou = 0;
+    int virou = 0;
+    int px;
+    int py;
+    
+    while( andou == 0){
+        px = chara->pos.x;
+        py = chara->pos.y;
+        /* armazena temporariamente a posicao */
+        switch( chara->dir % 4){
+            case UP:
+                py--;
+                break;
+            case LEFT:
+                px--;
+                break;
+            case RIGHT:
+                px++;
+                break;
+            case DOWN:
+                py++;
+                break;
+        }
+        
+        /* checa colisoes */
+        switch( jogo->tabuleiro[py][px]){
+            case '0':
+                /* vazio - move */
+                anda_interno(jogo, chara, c);
+                andou = 1;
+                break;
+            case 'P':
+                return HIT_GHOST;
+            case '1' ... '6':
+                /* pastilha - passa por cima  */
+                jogo->itens[(jogo->tabuleiro[py][px] - '1')].status = 1;
+                anda_interno(jogo, chara, c);
+                andou = 1;
+                break;
+            default:
+                /* parede ou outros fantasmas */
+                vira_fan( chara, c);
+                virou = 1;
+                break;
+        }
+    }
+    if( (c == 'G') && (virou == 1))
+        chara->dir = (chara->dir + 4) % 8;
     return 0;
 }
 
