@@ -43,13 +43,28 @@ int mygetch ( void )
   
   return ch;
 }
+void print_pause(){
+    for( int i = 0; i < 20; i++)
+        printf("\n");
+    printf("                            JOGO PAUSADO (pressione P)\n");
+    for( int i = 0; i < 21; i++)
+        printf("\n");
+}
+void print_win(){
+    for( int i = 0; i < 20; i++)
+        printf("\n");
+    printf("                            PARABÉNS! VOCÊ GANHOU\n");
+    for( int i = 0; i < 21; i++)
+        printf("\n");
+}
 /*----------------*/
 
 int main(int argc, char *argv[]){
     srand(0);
     int ch;
     int playing = GAME_RUNNING;
-    int pastilha = 0;
+    int andou = 0;
+    char carregar = '0';
     //Parametros
     char* arquivo = "tabuleiro.csv";
 /*
@@ -69,6 +84,8 @@ int main(int argc, char *argv[]){
         }
     }
 */
+            // checa se todas as pastilhas foram coletadas 
+
     //Declarações
     type_board* jogo;
     FILE* entrada = fopen(arquivo, "r");
@@ -90,10 +107,18 @@ int main(int argc, char *argv[]){
     
     
     //Começar jogo
-    //  while(1){
-
-    //}
     while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
+        /* carrega itens */
+        if( carregar > '0'){
+            if( pegou_tudo(jogo)){
+                print_win();
+                destruir_jogo(jogo);
+                return 0;
+            }
+            playing = GAME_PAUSED;
+            print_pause();
+        }
+
         /* input de tecla ASDW */
         ch = 0;
         if( playing == GAME_PAUSED){
@@ -133,47 +158,51 @@ int main(int argc, char *argv[]){
             case KEY_P:
                 /* P = PAUSE/UNPAUSE */
                 playing = GAME_PAUSED;
-                for( int i = 0; i < 20; i++)
-                    printf("\n");
-                printf("                            JOGO PAUSADO (pressione P)\n");
-                for( int i = 0; i < 21; i++)
-                    printf("\n");
+                print_pause();
                 break;
         }
 
         /* move os personagens */
-        if( playing == GAME_RUNNING)
-            switch( move_pac(jogo, ch)){
-                case HIT_WALL:
-                    break;
-                case HIT_GHOST:
-                    playing = GAME_OVER;
-                    break;
-                case COLLECTED_ALL:
-                    playing = GAME_WIN;
-                    break;
+        if( playing == GAME_RUNNING){ /* 0 andou; 1-6 pastilha; 8-11 fantasma */
+            andou = move_pac(jogo, ch);
+            carregar = '0';
+            if( andou > 0){
+                switch( andou){
+                    case HIT_R:
+                        carregar = 'r';
+                        break;
+                    case HIT_B:
+                        carregar = 'b';
+                        break;
+                    case HIT_G:
+                        carregar = 'g';
+                        break;
+                    case HIT_Y:
+                        carregar = 'y';
+                        break;
+                    default:
+                        carregar = '0' + andou;
+                        break;
+                }
             }
-        if(( playing == GAME_RUNNING) || (pastilha = 1)){
-            if( move_fan(jogo, &(jogo->R), 'R') == HIT_GHOST){
+            if( andou >= 8)
                 playing = GAME_OVER;
-            }
-            /*
-        if( playing == GAME_RUNNING)
-            if( move_fan(jogo, &(jogo->B), 'B') == HIT_GHOST){
-                playing = GAME_OVER;
-            }
+        }
         if( playing == GAME_RUNNING){
-            if( move_fan(jogo, &(jogo->G), 'G') == HIT_GHOST){
-                playing = GAME_OVER;
-            }
-        }
-        if( playing == GAME_RUNNING)
-            if( move_fan(jogo, &(jogo->Y), 'Y') == HIT_GHOST){
-                playing = GAME_OVER;
-            }
+            playing = GAME_OVER;
+            if( move_fan(jogo, &(jogo->R), 'R') == 1) /* 1 = hit */
+                carregar = 'r';
+            /*
+            else if( move_fan(jogo, &(jogo->B), 'B') == 1)
+                carregar = 'b';
+            else if( move_fan(jogo, &(jogo->B), 'G') == 1)
+                carregar = 'g';
+            else if( move_fan(jogo, &(jogo->B), 'Y') == 1)
+                carregar = 'y';
             */
+            else playing = GAME_RUNNING;
         }
-        if(( playing == GAME_RUNNING) || (pastilha = 1)){
+        if( playing == GAME_RUNNING){
             /* se algum fantasma passou por cima de alguma pastilha, checa se eh para desenhar de volta */
             for( int i = 0; i < 6; i++)
                 if( jogo->itens[i].status > 0){
@@ -184,17 +213,9 @@ int main(int argc, char *argv[]){
                 }
             print_jogo(jogo);
         }
-        pastilha = 0;
     }
 
     switch( playing){
-        case GAME_WIN:
-            for( int i = 0; i < 20; i++)
-                printf("\n");
-            printf("                            PARABÉNS! VOCÊ GANHOU\n");
-            for( int i = 0; i < 21; i++)
-                printf("\n");
-            break;
         case GAME_OVER:
             for( int i = 0; i < 20; i++)
                 printf("\n");

@@ -134,7 +134,6 @@ void vira_fan(personagem* chara, char c){
 int move_pac(type_board* jogo, int key){
     int px = jogo->P.pos.x;
     int py = jogo->P.pos.y;
-    int collall = 0;
     /* armazena temporariamente a nova posicao */
     switch( key){
         case KEY_W:
@@ -159,38 +158,33 @@ int move_pac(type_board* jogo, int key){
     switch( jogo->tabuleiro[py][px]){
         case 'X':
             /* parede - para*/
-            return HIT_WALL;
+            break;
         case '0':
             /* vazio - move */
             anda_interno(jogo, &(jogo->P), 'P');
             break;
         case '1' ... '6':
-            /* FILE - faz alguma coisa */
-
-
-
-            /* */
+            /* FILE - retorna */
             jogo->itens[(jogo->tabuleiro[py][px] - '1')].pos.x = -1;
             jogo->itens[(jogo->tabuleiro[py][px] - '1')].pos.y = -1;
             jogo->itens[(jogo->tabuleiro[py][px] - '1')].status = -1;
+            int n = (jogo->tabuleiro[py][px] - '0');
             anda_interno(jogo, &(jogo->P), 'P');
-
-            /* checa se todas as pastilhas foram coletadas */
-            collall = 1;
-            for( int i = 0; i < 6; i++)
-                if( jogo->itens[i].status >= 0){
-                    collall = 0;
-                }
-            if( collall == 1)
-                return COLLECTED_ALL;
-            break;
-        default:
-            /* fantasma */
-            return HIT_GHOST;
+            return (n); /* retorna 1-6 */
+        /* fantasmas - retorna 8-11*/
+        case 'R':
+            return HIT_R;
+        case 'B':
+            return HIT_B;
+        case 'G':
+            return HIT_G;
+        case 'Y':
+            return HIT_Y;
     }
     return 0;
 }
 
+/* retorna 1 se atinge pacman */
 int move_fan(type_board* jogo, personagem* chara, char c){
     int andou = 0;
     int virou = 0;
@@ -224,7 +218,7 @@ int move_fan(type_board* jogo, personagem* chara, char c){
                 andou = 1;
                 break;
             case 'P':
-                return HIT_GHOST;
+                return 1;
             case '1' ... '6':
                 /* pastilha - passa por cima  */
                 jogo->itens[(jogo->tabuleiro[py][px] - '1')].status = 1;
@@ -243,6 +237,16 @@ int move_fan(type_board* jogo, personagem* chara, char c){
     return 0;
 }
 
+int pegou_tudo(type_board* jogo){
+    int collall = 1;
+    for( int i = 0; i < 6; i++)
+        if( jogo->itens[i].status >= 0){
+            collall = 0;
+        }
+    if( collall == 1)
+        return 1;
+    return 0;
+}
 
 void print_jogo(type_board* jogo){
     char c;
@@ -281,51 +285,3 @@ void print_jogo(type_board* jogo){
     printf("%sP:%2d,%2d     R:%2d,%2d     B:%2d,%2d     G:%2d,%2d     Y:%2d,%2d\n", BLANK, jogo->P.pos.x, jogo->P.pos.y, jogo->R.pos.x, jogo->R.pos.y, jogo->B.pos.x, jogo->B.pos.y, jogo->G.pos.x, jogo->G.pos.y, jogo->Y.pos.x, jogo->Y.pos.y);
     printf("Items: [%2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d]\n", jogo->itens[0].pos.x, jogo->itens[0].pos.y, jogo->itens[1].pos.x, jogo->itens[1].pos.y, jogo->itens[2].pos.x, jogo->itens[2].pos.y, jogo->itens[3].pos.x, jogo->itens[3].pos.y, jogo->itens[4].pos.x, jogo->itens[4].pos.y, jogo->itens[5].pos.x, jogo->itens[5].pos.y);
 }
-
-/*
-int main(int argc, char *argv[]){
-
-    //Parametros
-    char* arquivo = "tabuleiro.csv";
-    char* rede = "lo";
-    int debug = 0;
-
-    for (int i = 1; i < argc; i++) {
-
-        if (strcmp(argv[i], "-debug") == 0) {
-            debug = 1;
-        }
-        else if (strcmp(argv[i], "-rede") == 0 && i + 1 < argc) {
-            rede = argv[++i];
-        }
-        else if (strcmp(argv[i], "-mapa") == 0 && i + 1 < argc) {
-            arquivo = argv[++i];
-        }
-    }
-
-    //Declarações
-    type_board jogo;
-    char** tabuleiro = calloc(40, sizeof(char*));
-    for (int i=0; i<40; i++){
-        tabuleiro[i] = calloc(40, sizeof(char));
-    }
-    jogo.tabuleiro = tabuleiro;
-
-    FILE* entrada = fopen(arquivo, "r");
-
-    //Criar tabuleiro a partir do csv    
-    criar_jogo(entrada, &jogo);
-    // print_jogo(&jogo);
-
-    //Inicia conexão
-    int socket = cria_raw_socket(rede);
-    
-    
-    
-    //Começar jogo
-    //  while(1){
-
-    //}
-
-}
-*/

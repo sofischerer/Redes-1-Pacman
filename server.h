@@ -2,15 +2,17 @@
 #define SERVER_H
 
 #define RANDOM(n) (rand() % n)
-#define HORARIO(dir) ( (dir + 1) % 4)
+#define HORARIO(dir) ((dir + 1) % 4)
 #define ANTIHORARIO(dir) (((dir + 3) % 4) + 4)
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
 #define LEFT 3
-#define HIT_WALL 1
-#define HIT_GHOST 2
-#define COLLECTED_ALL 3
+#define HIT_WALL 2
+#define HIT_R 8
+#define HIT_B 9
+#define HIT_G 10
+#define HIT_Y 11
 # ifndef KEYS
 # define KEYS
 # define KEY_W 119
@@ -21,12 +23,9 @@
 # define KEY_P 112
 # define GAME_QUIT 0
 # define GAME_RUNNING 1
-# define GAME_OVER 2
-# define GAME_WIN 3
-# define GAME_PAUSED 4
-# define GAME_SER_UPLOAD 5
-# define GAME_SER_DOWNLOAD 6
-# define GAME_TIMEOUT 7
+# define GAME_PAUSED 2
+# define GAME_OVER 3
+# define GAME_WIN 4
 # endif
 
 typedef struct posicao{
@@ -60,6 +59,7 @@ void anda_interno(type_board* jogo, personagem* chara, char c);
 void vira_fan(personagem* chara, char c);
 int move_pac(type_board* jogo, int key);
 int move_fan(type_board* jogo, personagem* chara, char c);
+int pegou_tudo(type_board* jogo);
 void print_jogo(type_board* jogo);
 
 #endif
