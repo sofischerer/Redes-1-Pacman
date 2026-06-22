@@ -17,6 +17,7 @@
 # define KEY_D 100
 # define KEY_S 115
 # define KEY_Q 113
+# define KEY_P 112
 # define GAME_QUIT 0
 # define GAME_RUNNING 1
 # define GAME_PAUSED 2
@@ -48,6 +49,7 @@ int main(int argc, char *argv[]){
     srand(0);
     int ch;
     int playing = GAME_RUNNING;
+    int pastilha = 0;
     //Parametros
     char* arquivo = "tabuleiro.csv";
 /*
@@ -69,17 +71,17 @@ int main(int argc, char *argv[]){
 */
     //Declarações
     type_board* jogo;
-    jogo = malloc( sizeof( type_board));
-
     FILE* entrada = fopen(arquivo, "r");
     if (entrada == NULL){
-        perror("ERRO AO ABRIR ARQUIVO");
+        perror("ERRO AO ABRIR TABULEIRO");
         fclose(entrada);
         return 1;
     }
+    jogo = malloc( sizeof( type_board));
 
     //Criar tabuleiro a partir do csv    
     criar_jogo(entrada, jogo);
+    fclose(entrada);
     print_jogo(jogo);
 
     //Inicia conexão
@@ -94,8 +96,17 @@ int main(int argc, char *argv[]){
     while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
         /* input de tecla ASDW */
         ch = 0;
-        while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_Q))
+        if( playing == GAME_PAUSED){
             ch = mygetch();
+            while( ch != KEY_P)
+                ch = mygetch();
+            playing = GAME_RUNNING;
+            ch = 0;
+            print_jogo(jogo);
+        }
+        while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_Q) && (ch != KEY_P)){
+            ch = mygetch();
+        }
         switch( ch){
             case KEY_W:
                 /* UP */
@@ -114,12 +125,20 @@ int main(int argc, char *argv[]){
                 jogo->P.dir = DOWN;
                 break;
             case KEY_Q:
-                /* P = QUIT */
+                /* Q = QUIT */
                 printf("\nQUIT\n");
                 playing = GAME_QUIT;
                 destruir_jogo(jogo);
-                fclose(entrada);
                 return 0;
+            case KEY_P:
+                /* P = PAUSE/UNPAUSE */
+                playing = GAME_PAUSED;
+                for( int i = 0; i < 20; i++)
+                    printf("\n");
+                printf("                            JOGO PAUSADO (pressione P)\n");
+                for( int i = 0; i < 21; i++)
+                    printf("\n");
+                break;
         }
 
         /* move os personagens */
@@ -134,7 +153,7 @@ int main(int argc, char *argv[]){
                     playing = GAME_WIN;
                     break;
             }
-        if( playing == GAME_RUNNING){
+        if(( playing == GAME_RUNNING) || (pastilha = 1)){
             if( move_fan(jogo, &(jogo->R), 'R') == HIT_GHOST){
                 playing = GAME_OVER;
             }
@@ -154,7 +173,7 @@ int main(int argc, char *argv[]){
             }
             */
         }
-        if( playing == GAME_RUNNING){
+        if(( playing == GAME_RUNNING) || (pastilha = 1)){
             /* se algum fantasma passou por cima de alguma pastilha, checa se eh para desenhar de volta */
             for( int i = 0; i < 6; i++)
                 if( jogo->itens[i].status > 0){
@@ -163,8 +182,9 @@ int main(int argc, char *argv[]){
                         jogo->itens[i].status = 0;
                     }
                 }
+            print_jogo(jogo);
         }
-        print_jogo(jogo);
+        pastilha = 0;
     }
 
     switch( playing){
@@ -186,5 +206,4 @@ int main(int argc, char *argv[]){
 
     /* TRASH */
     destruir_jogo(jogo);
-    fclose(entrada);
 }

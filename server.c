@@ -10,6 +10,10 @@ void criar_jogo(FILE* entrada, type_board* jogo){
     for (int i=0; i<40; i++){
         jogo->tabuleiro[i] = calloc(40, sizeof(char));
     }
+    for( int i = 0; i < 6; i++){
+        jogo->itens[i].pos.x = -1;
+        jogo->itens[i].pos.y = -1;
+    }
     char linha[100];
     for (int i=0; i<40; i++){
         fgets(linha, 100, entrada);
@@ -106,27 +110,20 @@ void anda_interno(type_board* jogo, personagem* chara, char c){
     jogo->tabuleiro[chara->pos.y][chara->pos.x] = c;
 }
 
-int horario( int dir){
-    return( (dir + 1) % 4);
-}
-
-int antihorario( int dir){
-    return( ((dir + 3) % 4) + 4);
-}
 
 void vira_fan(personagem* chara, char c){
     switch( c){
         case 'R':
-            chara->dir = horario( chara->dir);
+            chara->dir = HORARIO(chara->dir);
             break;
         case 'B':
-            chara->dir = antihorario( chara->dir);
+            chara->dir = ANTIHORARIO(chara->dir);
             break;
         case 'G':
             if( chara->dir < 4)
-                chara->dir = horario( chara->dir);
+                chara->dir = HORARIO(chara->dir);
             else
-                chara->dir = antihorario( chara->dir);
+                chara->dir = ANTIHORARIO(chara->dir);
             break;
         case 'Y':
             chara->dir = RANDOM(4);

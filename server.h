@@ -2,6 +2,8 @@
 #define SERVER_H
 
 #define RANDOM(n) (rand() % n)
+#define HORARIO(dir) ( (dir + 1) % 4)
+#define ANTIHORARIO(dir) (((dir + 3) % 4) + 4)
 #define UP 0
 #define RIGHT 1
 #define DOWN 2
@@ -16,11 +18,15 @@
 # define KEY_D 100
 # define KEY_S 115
 # define KEY_Q 113
+# define KEY_P 112
 # define GAME_QUIT 0
 # define GAME_RUNNING 1
-# define GAME_PAUSED 2
-# define GAME_OVER 3
-# define GAME_WIN 4
+# define GAME_OVER 2
+# define GAME_WIN 3
+# define GAME_PAUSED 4
+# define GAME_SER_UPLOAD 5
+# define GAME_SER_DOWNLOAD 6
+# define GAME_TIMEOUT 7
 # endif
 
 typedef struct posicao{
