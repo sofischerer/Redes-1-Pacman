@@ -41,6 +41,7 @@ int main(int argc, char *argv[]){
             write_save('0', 1);
         }
     }
+    
     /* checa se ha algum arquivo que nao conseguiu ser enviado */
     carregar = load_save_c();           /*.*/
     dist = load_save_n();               /*.*/
@@ -115,7 +116,7 @@ int main(int argc, char *argv[]){
             if( pegou_tudo(jogo)){
 
                 /* ---------- */
-                /* jogador ganhou, envia alguma coisa */
+                /* jogador ganhou, envia alguma coisa? */
                 print_win();
                 /* ---------- */
 
@@ -123,62 +124,30 @@ int main(int argc, char *argv[]){
                 destruir_view(view);
                 return 0;
             }
-            playing = GAME_PAUSED;
-
-            /* ---------- */
-            /* */
-            print_pause();
-            /* ---------- */
-
         }
 
         /* input de tecla ASDW */
         ch = 0;
-        if( playing == GAME_PAUSED){
-
-            /* esses que tem mygetch tem que trocar por um "receber comando do cliente" */
-            ch = mygetch(); /* 1 */
-            while( ch != KEY_P)
-                ch = mygetch(); /* 2 */
-            playing = GAME_RUNNING;
-            ch = 0;
-            update_view(view, jogo, dist);
+        while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S)){
 
             /* ---------- */
-            /* envia a matriz */
-            print_view(view);
-            /* ----------*/
+            /* aqui ele recebe a msg do cliente */
+            ch = mygetch();
+            /* ---------- */
 
-        }
-        while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_P)){
-            ch = mygetch();/* 3 */
         }
         switch( ch){
             case KEY_W:
-                /* UP */
                 jogo->P.dir = UP;
                 break;
-            case KEY_A:
-                /* LEFT */
-                jogo->P.dir = LEFT;
-                break;
             case KEY_D:
-                /* RIGHT */
                 jogo->P.dir = RIGHT;
                 break;
             case KEY_S:
-                /* DOWN */
                 jogo->P.dir = DOWN;
                 break;
-            case KEY_P:
-                /* P = PAUSE/UNPAUSE */
-                playing = GAME_PAUSED;
-
-                /* ---------- */
-                /* */
-                print_pause();
-                /* ---------- */
-
+            case KEY_A:
+                jogo->P.dir = LEFT;
                 break;
         }
 
@@ -275,7 +244,7 @@ int main(int argc, char *argv[]){
         write_save('0', (char)dist); /* NAO MEXER */
 
         /* ---------- */
-        /* jogador perdeu, envia alguma coisa */
+        /* jogador perdeu, envia alguma coisa? */
         print_gameover();
         /* ---------- */
 

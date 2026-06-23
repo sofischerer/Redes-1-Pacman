@@ -9,16 +9,6 @@
 /* LADO DO CLIENTE */
     
 int main(int argc, char *argv[]){
-    srand(0);
-    int ch;
-    int playing = GAME_RUNNING;
-    int andou = 0;
-    int turn = 0;
-    int dist = 1;
-    char carregar = '0';
-    char** view;
-    //Parametros
-    char* arquivo = "jogo.csv";
 /*
     char* rede = "lo";
     int debug = 0;
@@ -37,21 +27,52 @@ int main(int argc, char *argv[]){
         }
         */
     }
-    /* checa se ha algum arquivo que nao conseguiu ser enviado */
-    carregar = load_save_c();
-    dist = load_save_n();
-    if( carregar != '0'){
-        if( carregar > 'a')
-            playing = GAME_OVER;
+
+    char ch;
+    char** view = calloc(40, sizeof(char*));
+    for (int i=0; i<40; i++)
+        view[i] = calloc(40, sizeof(char));
+
+    while(1){
+        /* coleta input ASDW */
+        ch = mygetch();
+        while( (ch != KEY_W) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_A)){
+            ch = mygetch();
+        }
+
+        /* manda mensagem pro servidor*/
+        switch( ch){
+            case KEY_W: /* CIMA */
+
+            break;
+            case KEY_D: /* DIR */
+            
+            break;
+            case KEY_S:/* BAIXO */
+
+            break;
+            case KEY_A: /* ESQ */
+
+            break;
+        }
+
+        /* recebe dados e monta matriz view */
+        /* OU */
+        /* recebe arquivo e abre */
+        /* caso timeout, break */
+        /*
+        .
+        .
+        .
+        .
+        .
+        .
+        */
+
     }
 
-    //Declarações
-    type_board* jogo;
-    FILE* entrada = fopen(arquivo, "r");
-    if (entrada == NULL){
-        perror("ERRO AO ABRIR TABULEIRO");
-        return 1;
-    }
-    jogo = malloc( sizeof( type_board)) ;
-
+    /* frees */
+    for (int i=0; i<40; i++)
+        free(view[i]);
+    free(view);
 }
