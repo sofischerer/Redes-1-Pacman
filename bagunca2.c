@@ -100,10 +100,16 @@ int main(int argc, char *argv[]){
         }
         else */ if (strcmp(argv[i], "-new") == 0) {
             system("cp tabuleiro.csv jogo.csv");
+            system("touch save.txt");
+            write_save('0');
         }
     }
-    
-            // checa se todas as pastilhas foram coletadas 
+    /* checa se ha algum arquivo que nao conseguiu ser enviado */
+    carregar = load_save();
+    if( carregar != '0'){
+        if( carregar > 'a')
+            playing = GAME_OVER;
+    }
 
     //Declarações
     type_board* jogo;
@@ -127,27 +133,35 @@ int main(int argc, char *argv[]){
     while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
         /* carrega itens */
         if( carregar > '0'){
+            write_save( carregar);
             print_load( carregar);
             switch( carregar){
                 case '1':
+                    /* ENVIA */
                     system( OPEN_FILE_1);
                     break;
                 case '2':
+                    /* ENVIA */
                     system( OPEN_FILE_2);
                     break;
                 case '3':
+                    /* ENVIA */
                     system( OPEN_FILE_3);
                     break;
                 case '4':
+                    /* ENVIA */
                     system( OPEN_FILE_4);
                     break;
                 case '5':
+                    /* ENVIA */
                     system( OPEN_FILE_5);
                     break;
                 case '6':
+                    /* ENVIA */
                     system( OPEN_FILE_6);
                     break;
             }
+            write_save('0');
             if( pegou_tudo(jogo)){
                 print_win();
                 destruir_jogo(jogo);
@@ -253,25 +267,30 @@ int main(int argc, char *argv[]){
     }
 
     if( playing == GAME_OVER){
+        write_save(carregar);
         print_load( carregar);
         switch( carregar){
             case 'r':
+                /* ENVIA */
                 system( OPEN_FILE_R);
                 break;
             case 'b':
+                /* ENVIA */
                 system( OPEN_FILE_B);
                 break;
             case 'g':
+                /* ENVIA */
                 system( OPEN_FILE_G);
                 break;
             case 'y':
+                /* ENVIA */
                 system( OPEN_FILE_Y);
                 break;
         }
+        write_save('0');
         print_gameover();
     }
 
-    /* TRASH */
     destruir_jogo(jogo);
     return 0;
 }

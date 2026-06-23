@@ -304,3 +304,24 @@ int write_board(type_board* jogo){
     fclose(fp);
     return 0;
 }
+int write_save(char c){
+    FILE *fp = fopen("save.txt", "w");
+    if (fp == NULL){
+        perror("ERRO AO SOBRESCREVER SAVE");
+        return 1;
+    }
+    fputc(c, fp);
+    fputc('\0', fp);
+    fclose(fp);
+    return 0;
+}
+char load_save(){
+    FILE *fp = fopen("save.txt", "r");
+    if (fp == NULL){
+        perror("ERRO AO ABRIR SAVE");
+        return '-';
+    }
+    char c = fgetc(fp);
+    fclose(fp);
+    return c;
+}

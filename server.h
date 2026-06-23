@@ -62,5 +62,7 @@ int move_fan(type_board* jogo, personagem* chara, char c);
 int pegou_tudo(type_board* jogo);
 void print_jogo(type_board* jogo);
 int write_board(type_board* jogo);
+int write_save(char c);
+char load_save();
 
 #endif
