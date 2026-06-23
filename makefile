@@ -14,4 +14,4 @@ single: server.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f pacman *.o
+	rm -f pacman jogo.csv *.o

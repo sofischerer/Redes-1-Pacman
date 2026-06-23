@@ -85,9 +85,10 @@ int main(int argc, char *argv[]){
 /*
     char* rede = "lo";
     int debug = 0;
+*/
 
     for (int i = 1; i < argc; i++) {
-
+/*
         if (strcmp(argv[i], "-debug") == 0) {
             debug = 1;
         }
@@ -97,10 +98,11 @@ int main(int argc, char *argv[]){
         else if (strcmp(argv[i], "-mapa") == 0 && i + 1 < argc) {
             *arquivo = argv[++i];
         }
+        else */ if (strcmp(argv[i], "-new") == 0) {
+            system("cp tabuleiro.csv jogo.csv");
+        }
     }
-*/
-
-    system("cp tabuleiro.csv jogo.csv");
+    
             // checa se todas as pastilhas foram coletadas 
 
     //Declarações
@@ -108,7 +110,6 @@ int main(int argc, char *argv[]){
     FILE* entrada = fopen(arquivo, "r");
     if (entrada == NULL){
         perror("ERRO AO ABRIR TABULEIRO");
-        fclose(entrada);
         return 1;
     }
     jogo = malloc( sizeof( type_board)) ;
@@ -247,6 +248,7 @@ int main(int argc, char *argv[]){
                     }
                 }
             print_jogo(jogo);
+            write_board(jogo);
         }
     }
 
