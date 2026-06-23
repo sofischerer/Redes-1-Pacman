@@ -6,72 +6,9 @@
 //#include "network.h"
 #include "files.h"
 #include "server.h"
+#include "client.h"
+#include "debug.h"
 
-/* isso vai no client.c */
-#ifndef CLIENT_H
-#define CLIENT_H
-
-# ifndef KEYS
-# define KEYS
-# define KEY_W 119
-# define KEY_A 97
-# define KEY_D 100
-# define KEY_S 115
-# define KEY_Q 113
-# define KEY_P 112
-# define GAME_QUIT 0
-# define GAME_RUNNING 1
-# define GAME_PAUSED 2
-# define GAME_OVER 3
-# define GAME_WIN 4
-# endif
-
-// int mygetch ( void );
-
-#endif
-
-int mygetch ( void ) 
-{
-  int ch;
-  struct termios oldt, newt;
-  
-  tcgetattr ( STDIN_FILENO, &oldt );
-  newt = oldt;
-  newt.c_lflag &= ~( ICANON | ECHO );
-  tcsetattr ( STDIN_FILENO, TCSANOW, &newt );
-  ch = getchar();
-  tcsetattr ( STDIN_FILENO, TCSANOW, &oldt );
-  
-  return ch;
-}
-void print_pause(){
-    for( int i = 0; i < 20; i++)
-        printf("\n");
-    printf("                            JOGO PAUSADO (pressione P)\n");
-    for( int i = 0; i < 21; i++)
-        printf("\n");
-}
-void print_win(){
-    for( int i = 0; i < 20; i++)
-        printf("\n");
-    printf("                            PARABÉNS! VOCÊ GANHOU\n");
-    for( int i = 0; i < 21; i++)
-        printf("\n");
-}
-void print_gameover(){
-    for( int i = 0; i < 20; i++)
-        printf("\n");
-    printf("                                  GAME OVER\n");
-    for( int i = 0; i < 21; i++)
-        printf("\n");
-} 
-void print_load(char c){
-    for( int i = 0; i < 20; i++)
-        printf("\n");
-    printf("                            TRANSFERINDO ARQUIVO %c...\n", c);
-    for( int i = 0; i < 21; i++)
-        printf("\n");
-} 
 /*----------------*/
 
 int main(int argc, char *argv[]){
@@ -104,7 +41,7 @@ int main(int argc, char *argv[]){
         else */ if (strcmp(argv[i], "-new") == 0) {
             system("cp tabuleiro.csv jogo.csv");
             system("touch save.txt");
-            write_save('0', 0);
+            write_save('0', 1);
         }
     }
     /* checa se ha algum arquivo que nao conseguiu ser enviado */

@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "network.h"
-#include "server.h"
 #include "color.h"
+#include "server.h"
 
 void criar_jogo(FILE* entrada, type_board* jogo){
     jogo->tabuleiro = calloc(40, sizeof(char*));
@@ -273,50 +272,6 @@ void update_view(char** view, type_board* jogo, int dist){
     for (int i=(vy >= 0 ? vy : 0); i<maxy; i++)
         for (int j=(vx >= 0 ? vx : 0); j<maxx; j++)
             view[i][j] = jogo->tabuleiro[i][j];
-}
-void print_view(char** view){
-    char c;
-    for (int i=0; i<40; i++){
-        for (int j=0; j<40; j++){
-            c = view[i][j];
-            switch (c) {
-                case '-':
-                    printf("  ");
-                    break;
-                case 'P':
-                    printf("%s %c%s", BOLD, c, RESET);
-                    break;
-                case 'R':
-                    printf("%s %c%s", RED, c, RESET);
-                    break;
-                case 'B':
-                    printf("%s %c%s", BLUE, c, RESET);
-                    break;
-                case 'G':
-                    printf("%s %c%s", GREEN, c, RESET);
-                    break;
-                case 'Y':
-                    printf("%s %c%s", YELLOW, c, RESET);
-                    break;
-                case '1' ... '6':
-                    printf("%s %c%s", GOLD, c, RESET);
-                    break;
-                case 'X':
-                    printf("%s %c%s", WALL, c, RESET);
-                    break;
-                default:
-                    printf("%s %c%s", BLANK, c, RESET);
-                    break;
-            }
-        }
-        printf("\n");
-    }
-}
-
-void print_jogo(type_board* jogo){
-    print_view(jogo->tabuleiro);
-    printf("%sP:%2d,%2d     R:%2d,%2d     B:%2d,%2d     G:%2d,%2d     Y:%2d,%2d\n", BLANK, jogo->P.pos.x, jogo->P.pos.y, jogo->R.pos.x, jogo->R.pos.y, jogo->B.pos.x, jogo->B.pos.y, jogo->G.pos.x, jogo->G.pos.y, jogo->Y.pos.x, jogo->Y.pos.y);
-    printf("Items: [%2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d]\n", jogo->itens[0].pos.x, jogo->itens[0].pos.y, jogo->itens[1].pos.x, jogo->itens[1].pos.y, jogo->itens[2].pos.x, jogo->itens[2].pos.y, jogo->itens[3].pos.x, jogo->itens[3].pos.y, jogo->itens[4].pos.x, jogo->itens[4].pos.y, jogo->itens[5].pos.x, jogo->itens[5].pos.y);
 }
 
 int write_board(type_board* jogo){

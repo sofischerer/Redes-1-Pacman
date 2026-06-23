@@ -3,11 +3,17 @@ CFLAGS = -Wall -Werror -g
 
 OBJS = server.o
 
-all: $(OBJS)
-	$(CC) $(CFLAGS) -o pacman main.c $(OBJS)
+all:
+	echo "\n\n    DIGITE\n        make server\n        make client\n        make single (versao para testes apenas)\n"
 
-single: server.o
-	$(CC) $(CFLAGS) -o pacman bagunca2.c server.o
+server: network.o server.o
+	$(CC) $(CFLAGS) -o pacman game.c network.o server.o
+
+client: network.o client.o
+	$(CC) $(CFLAGS) -o pacman main.c network.o client.o
+
+single: debug.o server.o client.o
+	$(CC) $(CFLAGS) -o pacman bagunca2.c debug.o server.o client.o
 	echo "\nversao teste SEM cliente-servidor"
 
 %.o: %.c
