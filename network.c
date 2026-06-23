@@ -114,13 +114,14 @@ void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int ti
 
     //Calcula o CRC e coloca no buffer
     buffer[header_size+tamanho] = calcular_crc(buffer, header_size+tamanho);
+    printf("CRC = %d\n", calcular_crc(buffer, header_size+tamanho));
+    printf("CRC = %d\n", buffer[header_size+tamanho]);
 
     //Coloca o buffer no frame ETH
     memcpy(buffer_eth+sizeof(struct ethhdr), buffer, header_size+tamanho+1);
 
-    //ADICIONAR PARTE DE ENVIO
+    //Envio direcionado, um pouco de overkill mas melhor deixar mais versátil
     int tamanho_total = sizeof(struct ethhdr) + header_size + tamanho + 1;
-
     sendto(sock, buffer_eth, tamanho_total, 0, (struct sockaddr*)&destino, sizeof(destino));
 
     //ADICIONAR PARA E ESPERA
@@ -129,26 +130,51 @@ void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int ti
 }
 
 
-void recebe_pacote(int sock, uint8_t* mensagem){
+int recebe_pacote(int sock, uint8_t* dados, int* tamanho, int* sequencia, int* tipo){
     unsigned char frame[ETH_FRAME_LEN];
     
     //Usados para retirar a duplicação da loopback
     struct sockaddr_ll origem;
     socklen_t origem_len = sizeof(origem);
 
-    int dados = recvfrom(sock, frame, sizeof(frame), 0, (struct sockaddr *)&origem, &origem_len);
+    int resposta = recvfrom(sock, frame, sizeof(frame), 0, (struct sockaddr *)&origem, &origem_len);
 
     // Se o pacote foi enviado por esta mesma máquina, ignore-o
     if (origem.sll_pkttype == PACKET_OUTGOING) {
-        return; 
+        return -1; 
     }
 
     struct ethhdr *eth = (struct ethhdr *) frame;
-
-    if (ntohs(eth->h_proto) == 0x8888){
-        printf("success\n");
-        printf("MAC origem: %02x:%02x:%02x:%02x:%02x:%02x\n",
-            eth->h_source[0], eth->h_source[1], eth->h_source[2],
-            eth->h_source[3], eth->h_source[4], eth->h_source[5]);
+    if (ntohs(eth->h_proto) != 0x8888) {
+        return -1;
     }
+    uint8_t* payload = frame+sizeof(struct ethhdr);
+    int payload_len = resposta-sizeof(struct ethhdr);
+    struct protocolo* p = (struct protocolo*) payload;
+    uint16_t cabecalho = ntohs(p->tam_seq_tip);
+
+    *tamanho = (cabecalho >> 11) & 0x1F;
+    *sequencia = (cabecalho >> 5) & 0x3F;
+    *tipo = cabecalho & 0x1F;
+    memcpy(dados, payload+sizeof(struct protocolo), *tamanho);
+    int old_crc = payload[payload_len - 1];
+    int crc = calcular_crc(payload, payload_len-1);
+
+    // /*
+    printf("inicio = 0x%02X\n", p->inicio);
+    printf("tam = %u\n", *tamanho);
+    printf("seq = %u\n", *sequencia);
+    printf("tip = %u\n", *tipo);
+    printf("CRC recalculado: %d\n", crc);
+    printf("CRC da mensagem: %d\n",old_crc);
+    for (int i = 0; i<(*tamanho); i++){
+        printf("%d ", dados[i]);
+    }
+    printf("\n");
+    printf("CRC recalculado: %d", crc);
+    printf("CRC da mensagem: %d",old_crc);
+    // */
+
+    return 0;
+
 }
