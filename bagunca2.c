@@ -4,6 +4,7 @@
 #include <termios.h>
 #include <unistd.h>
 //#include "network.h"
+#include "files.h"
 #include "server.h"
 
 /* isso vai no client.c */
@@ -57,6 +58,20 @@ void print_win(){
     for( int i = 0; i < 21; i++)
         printf("\n");
 }
+void print_gameover(){
+    for( int i = 0; i < 20; i++)
+        printf("\n");
+    printf("                                  GAME OVER\n");
+    for( int i = 0; i < 21; i++)
+        printf("\n");
+} 
+void print_load(char c){
+    for( int i = 0; i < 20; i++)
+        printf("\n");
+    printf("                            TRANSFERINDO ARQUIVO %c...\n", c);
+    for( int i = 0; i < 21; i++)
+        printf("\n");
+} 
 /*----------------*/
 
 int main(int argc, char *argv[]){
@@ -66,7 +81,7 @@ int main(int argc, char *argv[]){
     int andou = 0;
     char carregar = '0';
     //Parametros
-    char* arquivo = "tabuleiro.csv";
+    char* arquivo = "jogo.csv";
 /*
     char* rede = "lo";
     int debug = 0;
@@ -80,10 +95,12 @@ int main(int argc, char *argv[]){
             rede = argv[++i];
         }
         else if (strcmp(argv[i], "-mapa") == 0 && i + 1 < argc) {
-            arquivo = argv[++i];
+            *arquivo = argv[++i];
         }
     }
 */
+
+    system("cp tabuleiro.csv jogo.csv");
             // checa se todas as pastilhas foram coletadas 
 
     //Declarações
@@ -94,13 +111,12 @@ int main(int argc, char *argv[]){
         fclose(entrada);
         return 1;
     }
-    jogo = malloc( sizeof( type_board));
+    jogo = malloc( sizeof( type_board)) ;
 
     //Criar tabuleiro a partir do csv    
     criar_jogo(entrada, jogo);
     fclose(entrada);
     print_jogo(jogo);
-
     //Inicia conexão
     //int socket = cria_raw_socket(rede);
     
@@ -110,6 +126,27 @@ int main(int argc, char *argv[]){
     while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
         /* carrega itens */
         if( carregar > '0'){
+            print_load( carregar);
+            switch( carregar){
+                case '1':
+                    system( OPEN_FILE_1);
+                    break;
+                case '2':
+                    system( OPEN_FILE_2);
+                    break;
+                case '3':
+                    system( OPEN_FILE_3);
+                    break;
+                case '4':
+                    system( OPEN_FILE_4);
+                    break;
+                case '5':
+                    system( OPEN_FILE_5);
+                    break;
+                case '6':
+                    system( OPEN_FILE_6);
+                    break;
+            }
             if( pegou_tudo(jogo)){
                 print_win();
                 destruir_jogo(jogo);
@@ -192,14 +229,12 @@ int main(int argc, char *argv[]){
             playing = GAME_OVER;
             if( move_fan(jogo, &(jogo->R), 'R') == 1) /* 1 = hit */
                 carregar = 'r';
-            /*
             else if( move_fan(jogo, &(jogo->B), 'B') == 1)
                 carregar = 'b';
-            else if( move_fan(jogo, &(jogo->B), 'G') == 1)
+            else if( move_fan(jogo, &(jogo->G), 'G') == 1)
                 carregar = 'g';
-            else if( move_fan(jogo, &(jogo->B), 'Y') == 1)
+            else if( move_fan(jogo, &(jogo->Y), 'Y') == 1)
                 carregar = 'y';
-            */
             else playing = GAME_RUNNING;
         }
         if( playing == GAME_RUNNING){
@@ -215,16 +250,26 @@ int main(int argc, char *argv[]){
         }
     }
 
-    switch( playing){
-        case GAME_OVER:
-            for( int i = 0; i < 20; i++)
-                printf("\n");
-            printf("                                    GAME OVER\n");
-            for( int i = 0; i < 21; i++)
-                printf("\n");
-            break;
+    if( playing == GAME_OVER){
+        print_load( carregar);
+        switch( carregar){
+            case 'r':
+                system( OPEN_FILE_R);
+                break;
+            case 'b':
+                system( OPEN_FILE_B);
+                break;
+            case 'g':
+                system( OPEN_FILE_G);
+                break;
+            case 'y':
+                system( OPEN_FILE_Y);
+                break;
+        }
+        print_gameover();
     }
 
     /* TRASH */
     destruir_jogo(jogo);
+    return 0;
 }
