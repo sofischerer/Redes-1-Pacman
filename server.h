@@ -60,9 +60,14 @@ void vira_fan(personagem* chara, char c);
 int move_pac(type_board* jogo, int key);
 int move_fan(type_board* jogo, personagem* chara, char c);
 int pegou_tudo(type_board* jogo);
+char** criar_view();
+void destruir_view(char** view);
+void update_view(char** view, type_board* jogo, int dist);
+void print_view(char** view);
 void print_jogo(type_board* jogo);
 int write_board(type_board* jogo);
-int write_save(char c);
-char load_save();
+int write_save(char c, char n);
+char load_save_c();
+int load_save_n();
 
 #endif

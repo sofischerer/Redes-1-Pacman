@@ -247,13 +247,42 @@ int pegou_tudo(type_board* jogo){
         return 1;
     return 0;
 }
-
-void print_jogo(type_board* jogo){
+char** criar_view(){
+    char** view = calloc(40, sizeof(char*));
+    for (int i=0; i<40; i++)
+        view[i] = calloc(40, sizeof(char));
+    return view;
+}
+void destruir_view(char** view){
+    for (int i=0; i<40; i++)
+        free(view[i]);
+    free(view);
+}
+void update_view(char** view, type_board* jogo, int dist){
+    for (int i=0; i<40; i++)
+        for (int j=0; j<40; j++)
+            view[i][j] = '-';
+    
+    int vx = jogo->P.pos.x - dist;
+    int vy = jogo->P.pos.y - dist;
+    int maxx = vx + (dist * 2) + 1;
+    int maxy = vy + (dist * 2) + 1;
+    maxx = (maxx < 40 ? maxx : 40);
+    maxy = (maxy < 40 ? maxy : 40);
+    
+    for (int i=(vy >= 0 ? vy : 0); i<maxy; i++)
+        for (int j=(vx >= 0 ? vx : 0); j<maxx; j++)
+            view[i][j] = jogo->tabuleiro[i][j];
+}
+void print_view(char** view){
     char c;
     for (int i=0; i<40; i++){
         for (int j=0; j<40; j++){
-            c = jogo->tabuleiro[i][j];
+            c = view[i][j];
             switch (c) {
+                case '-':
+                    printf("  ");
+                    break;
                 case 'P':
                     printf("%s %c%s", BOLD, c, RESET);
                     break;
@@ -282,6 +311,10 @@ void print_jogo(type_board* jogo){
         }
         printf("\n");
     }
+}
+
+void print_jogo(type_board* jogo){
+    print_view(jogo->tabuleiro);
     printf("%sP:%2d,%2d     R:%2d,%2d     B:%2d,%2d     G:%2d,%2d     Y:%2d,%2d\n", BLANK, jogo->P.pos.x, jogo->P.pos.y, jogo->R.pos.x, jogo->R.pos.y, jogo->B.pos.x, jogo->B.pos.y, jogo->G.pos.x, jogo->G.pos.y, jogo->Y.pos.x, jogo->Y.pos.y);
     printf("Items: [%2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d;  %2d,%2d]\n", jogo->itens[0].pos.x, jogo->itens[0].pos.y, jogo->itens[1].pos.x, jogo->itens[1].pos.y, jogo->itens[2].pos.x, jogo->itens[2].pos.y, jogo->itens[3].pos.x, jogo->itens[3].pos.y, jogo->itens[4].pos.x, jogo->itens[4].pos.y, jogo->itens[5].pos.x, jogo->itens[5].pos.y);
 }
@@ -304,18 +337,19 @@ int write_board(type_board* jogo){
     fclose(fp);
     return 0;
 }
-int write_save(char c){
+int write_save(char c, char n){
     FILE *fp = fopen("save.txt", "w");
     if (fp == NULL){
         perror("ERRO AO SOBRESCREVER SAVE");
         return 1;
     }
     fputc(c, fp);
+    fputc(n, fp);
     fputc('\0', fp);
     fclose(fp);
     return 0;
 }
-char load_save(){
+char load_save_c(){
     FILE *fp = fopen("save.txt", "r");
     if (fp == NULL){
         perror("ERRO AO ABRIR SAVE");
@@ -324,4 +358,15 @@ char load_save(){
     char c = fgetc(fp);
     fclose(fp);
     return c;
+}
+int load_save_n(){
+    FILE *fp = fopen("save.txt", "r");
+    if (fp == NULL){
+        perror("ERRO AO ABRIR SAVE");
+        return '-';
+    }
+    fgetc(fp);
+    char c = fgetc(fp);
+    fclose(fp);
+    return (int)c;
 }

@@ -11,7 +11,7 @@
 #### TABULEIRO
 
 #### OUTROS
-- mygetch lê input
-- print_jogo
-- print_pause
-- print_win
+subtituir funçoes no modelo final:
+- mygetch (lê input sem precisar de enter)
+- todas as funcoes de print_ 
+- dá um CTRL + F em ENVIAR

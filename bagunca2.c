@@ -79,7 +79,10 @@ int main(int argc, char *argv[]){
     int ch;
     int playing = GAME_RUNNING;
     int andou = 0;
+    int turn = 0;
+    int dist = 1;
     char carregar = '0';
+    char** view;
     //Parametros
     char* arquivo = "jogo.csv";
 /*
@@ -101,11 +104,12 @@ int main(int argc, char *argv[]){
         else */ if (strcmp(argv[i], "-new") == 0) {
             system("cp tabuleiro.csv jogo.csv");
             system("touch save.txt");
-            write_save('0');
+            write_save('0', 0);
         }
     }
     /* checa se ha algum arquivo que nao conseguiu ser enviado */
-    carregar = load_save();
+    carregar = load_save_c();
+    dist = load_save_n();
     if( carregar != '0'){
         if( carregar > 'a')
             playing = GAME_OVER;
@@ -123,7 +127,9 @@ int main(int argc, char *argv[]){
     //Criar tabuleiro a partir do csv    
     criar_jogo(entrada, jogo);
     fclose(entrada);
-    print_jogo(jogo);
+    view = criar_view();
+    update_view(view, jogo, dist);
+    print_view(view);
     //Inicia conexão
     //int socket = cria_raw_socket(rede);
     
@@ -133,7 +139,7 @@ int main(int argc, char *argv[]){
     while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
         /* carrega itens */
         if( carregar > '0'){
-            write_save( carregar);
+            write_save( carregar, (char)dist);
             print_load( carregar);
             switch( carregar){
                 case '1':
@@ -161,10 +167,11 @@ int main(int argc, char *argv[]){
                     system( OPEN_FILE_6);
                     break;
             }
-            write_save('0');
+            write_save('0', (char)dist);
             if( pegou_tudo(jogo)){
                 print_win();
                 destruir_jogo(jogo);
+                destruir_view(view);
                 return 0;
             }
             playing = GAME_PAUSED;
@@ -179,7 +186,8 @@ int main(int argc, char *argv[]){
                 ch = mygetch();
             playing = GAME_RUNNING;
             ch = 0;
-            print_jogo(jogo);
+            update_view(view, jogo, dist);
+            print_view(view);
         }
         while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_Q) && (ch != KEY_P)){
             ch = mygetch();
@@ -206,6 +214,7 @@ int main(int argc, char *argv[]){
                 printf("\nQUIT\n");
                 playing = GAME_QUIT;
                 destruir_jogo(jogo);
+                destruir_view(view);
                 return 0;
             case KEY_P:
                 /* P = PAUSE/UNPAUSE */
@@ -261,13 +270,20 @@ int main(int argc, char *argv[]){
                         jogo->itens[i].status = 0;
                     }
                 }
-            print_jogo(jogo);
+            turn++;
+            if( (turn % 5) == 0)
+                if( dist < 127){
+                    dist++;
+                    write_save('0', (char)dist);
+                }
+            update_view(view, jogo, dist);
+            print_view(view);
             write_board(jogo);
         }
     }
 
     if( playing == GAME_OVER){
-        write_save(carregar);
+        write_save(carregar, (char)dist);
         print_load( carregar);
         switch( carregar){
             case 'r':
@@ -287,10 +303,11 @@ int main(int argc, char *argv[]){
                 system( OPEN_FILE_Y);
                 break;
         }
-        write_save('0');
+        write_save('0', (char)dist);
         print_gameover();
     }
 
     destruir_jogo(jogo);
+    destruir_view(view);
     return 0;
 }
