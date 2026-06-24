@@ -87,3 +87,11 @@ void print_view(char** view){
         printf("\n");
     }
 }
+void read_board(FILE* entrada, char** saida){
+    char linha[100];
+    for (int i=0; i<40; i++){
+        fgets(linha, 100, entrada);
+        for (int j=0; j<40; j++)
+            saida[i][j] = linha[2*j];
+    }
+}

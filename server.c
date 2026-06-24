@@ -274,16 +274,16 @@ void update_view(char** view, type_board* jogo, int dist){
             view[i][j] = jogo->tabuleiro[i][j];
 }
 
-int write_board(type_board* jogo){
+int write_board(char** a, char* saida){
     char c;
-    FILE *fp = fopen("jogo.csv", "w");
+    FILE *fp = fopen(saida, "w");
     if (fp == NULL){
         perror("ERRO AO SOBRESCREVER TABULEIRO");
         return 1;
     }
     for (int i=0; i<40; i++){
         for (int j=0; j<40; j++){
-            c = jogo->tabuleiro[i][j];
+            c = a[i][j];
             fputc(c, fp);
             fputc(';', fp);
         }

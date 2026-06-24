@@ -215,7 +215,7 @@ int main(int argc, char *argv[]){
                 }
             update_view(view, jogo, dist);
             print_view(view);
-            write_board(jogo);
+            write_board(jogo->tabuleiro, "jogo.csv");
         }
     }
 

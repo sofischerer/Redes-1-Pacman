@@ -6,6 +6,7 @@
 #include "network.h"
 #include "files.h"
 #include "client.h"
+#include "tesoura.h"
 /* LADO DO CLIENTE */
     
 int main(int argc, char *argv[]){

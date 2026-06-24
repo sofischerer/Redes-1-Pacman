@@ -1,51 +1,109 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define SEGMENT 31
+#define TAM_PEDACO (31 * sizeof(char))
 
 
-long file_size(char *name)
-{
+unsigned long long int file_size(char *name){
     FILE *fp = fopen(name, "rb");
 
-    long size=-1;
-    if(fp)
-    {
-        fseek (fp, 0, SEEK_END);
-        size = ftell(fp)+1;
-        fclose(fp);
-    }
+    unsigned long long int size = -1;
+    if( !fp) return -1;
+
+    fseek( fp, 0, SEEK_END);
+    size = ftell( fp);
+    fclose( fp);
+
     return size;
 }
 
-int main()
-{
-    int segments, i, accum;
-    FILE *fp1, *fp2;
-    char largeFileName[]={"../garchomp.jpg"};//change to your path
-/*    long sizeFile = file_size("largeFileName");*/
-    segments = 2 /*sizeFile/SEGMENT + 1*/;//ensure end of file
-    char filename[260]={"../smallFileName.txt"};//base name for small files.
-    char line[1080];
+int envia_arquivo( char* entrada, char* saida){
+    FILE *fp;
+    char buffer[TAM_PEDACO];
+    
+    /* TRASH */
+    FILE* fp2;
+    fp2 = fopen(saida, "wb");
+    if( !fp2) return -1;
+    /* ----- */
 
-    fp1 = fopen(largeFileName, "r");
-    if(fp1)
-    {
-        for(i=0;i<segments;i++)
-        {
-            accum = 0;
-            fp2 = fopen(filename, "w");
-            if(fp2)
-            {
-                while(fgets(line, 31, fp1) && accum <= SEGMENT)
-                {
-                    accum += strlen(line);//track size of growing file
-                    fputs(line, fp2);
-                }
-                fclose(fp2);
-            }
+    fp = fopen(entrada, "rb");
+    if( !fp) return -1;
+
+    unsigned long long int max = file_size(entrada) / TAM_PEDACO;
+    for (unsigned long long int i = 0; i < max; i++){
+        if( fread( buffer, sizeof( char), TAM_PEDACO, fp)){
+
+            fwrite( buffer, sizeof( char), TAM_PEDACO, fp2);/* trocar por enviar o buffer*/
+        
+            /* se der timeout retorna -1 */
+            /* fazer */
         }
-        fclose(fp1);
     }
+    /* pode ser que o ultimo pedaco seja menor que o TAM_PEDACO */
+    if( max % TAM_PEDACO != 0){
+        memset( buffer, 0, sizeof(buffer));
+        fread( buffer, sizeof( char), (max % TAM_PEDACO) + 1, fp);
+
+        fwrite( buffer, sizeof( char), (max % TAM_PEDACO) + 1, fp2);;/* trocar por enviar o buffer. cuidado com o tamanho */
+        
+        /* se der timeout retorna -1 */
+        /* fazer */
+
+    }
+
+    /* TRASH */
+    fclose(fp2);
+    /* ----- */
+
+    fclose(fp);
     return 0;
+}
+
+int recebe_arquivo( char* entrada, char* saida){
+    char buffer[TAM_PEDACO];
+    FILE* fp2;
+    fp2 = fopen(saida, "wb");
+    if( !fp2) return -1;
+    
+    /* TRASH */
+    FILE *fp;
+    fp = fopen(entrada, "rb");
+    if( !fp) return -1;
+    /* ----- */
+
+    unsigned long long int max = file_size(entrada) / TAM_PEDACO;
+    for (unsigned long long int i = 0; i < max; i++){
+        if( fread( buffer, sizeof( char), TAM_PEDACO, fp)){
+
+            fwrite( buffer, sizeof( char), TAM_PEDACO, fp2);/* trocar por enviar o buffer*/
+        
+            /* se der timeout retorna -1 */
+            /* fazer */
+        }
+    }
+    /* pode ser que o ultimo pedaco seja menor que o TAM_PEDACO */
+    if( max % TAM_PEDACO != 0){
+        memset( buffer, 0, sizeof(buffer));
+        fread( buffer, sizeof( char), (max % TAM_PEDACO) + 1, fp);
+
+        fwrite( buffer, sizeof( char), (max % TAM_PEDACO) + 1, fp2);;/* trocar por enviar o buffer. cuidado com o tamanho */
+        
+        /* se der timeout retorna -1 */
+        /* fazer */
+
+    }
+
+
+    /* TRASH */
+    fclose(fp2);
+    /* ----- */
+
+
+    fclose(fp);
+    return 0;
+}
+
+int main(){
+    
 }

@@ -4,6 +4,7 @@
 #include "network.h"
 #include "files.h"
 #include "server.h"
+#include "tesoura.h"
 
 
 /* LADO DO SERVIDOR */

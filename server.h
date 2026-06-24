@@ -63,7 +63,7 @@ int pegou_tudo(type_board* jogo);
 char** criar_view();
 void destruir_view(char** view);
 void update_view(char** view, type_board* jogo, int dist);
-int write_board(type_board* jogo);
+int write_board(char** a, char* saida);
 int write_save(char c, char n);
 char load_save_c();
 int load_save_n();
