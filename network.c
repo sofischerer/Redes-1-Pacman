@@ -164,21 +164,6 @@ int recebe_pacote(int sock, uint8_t* dados, int* tamanho, int* sequencia, int* t
     //Verificação de CRC
     int crc = calcular_crc(payload, payload_len-1);
     if (crc != payload[payload_len - 1]) return -1;
-
-    //Prints de teste pq o debugger do meu pc está explodindo por algum motivo
-    /*
-    printf("inicio = 0x%02X\n", p->inicio);
-    printf("tam = %u\n", *tamanho);
-    printf("seq = %u\n", *sequencia);
-    printf("tip = %u\n", *tipo);
-    printf("CRC recalculado: %d\n", crc);
-    printf("CRC da mensagem: %d\n",payload[payload_len - 1]);
-    for (int i = 0; i<(*tamanho); i++){
-        printf("%d ", dados[i]);
-    }
-    printf("\n");
-    // */
-
     return 0;
 
 }
@@ -197,30 +182,11 @@ int transmissao(uint8_t **dados, int *tamanhos, int seq_inicial, int *tipos, int
     int temp_tam, temp_seq, temp_tipo;
 //goto pq a mari me influencia demais
 timeout:
-    printf("teste\n");
     tentativas++;
     seq = seq_inicial;
     for (int i = 0; i<tam_janela; i++){
         if (seq > 63) seq = 0;
         else seq++;
-    //     printf("sock=%d\n", sock);
-    //     printf("nome_rede=%s\n", nome_rede);
-    //     printf("dados: ");
-    //     for (int j = 0; j < tamanhos[i]; j++) {
-    //         printf("%02X ", dados[i][j]);
-    //     }
-    //     printf("\n");
-    //     printf("tamanho=%u\n", tamanhos[i]);
-    //     printf("tipo=%u\n", tipos[i]);
-    //     printf("seq=%u\n", seq);
-
-    //     printf("MAC_dest: %u %u %u %u %u %u\n",
-    //         MAC_dest[0], MAC_dest[1], MAC_dest[2],
-    //         MAC_dest[3], MAC_dest[4], MAC_dest[5]);
-
-    //     printf("MAC_ori:  %u %u %u %u %u %u\n",
-    //    MAC_ori[0], MAC_ori[1], MAC_ori[2],
-    //    MAC_ori[3], MAC_ori[4], MAC_ori[5]);
         envia_pacote(sock, nome_rede, dados[i], tamanhos[i], tipos[i], seq, MAC_dest, MAC_ori);
     }
     if (tentativas>=TIMEOUT_LIMIT) return -1;
