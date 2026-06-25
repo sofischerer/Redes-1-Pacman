@@ -211,6 +211,13 @@ int move_fan(type_board* jogo, personagem* chara, char c){
                 break;
         }
         
+        /* checa se esta tentando movimentar para fora do board */
+        if( (px < 0) || (py < 0) || (px >= 40) || (py >= 40)){
+            /* trata como parade e vira */
+            vira_fan( chara, c);
+            virou = 1;
+            break;
+        } else
         /* checa colisoes */
         switch( jogo->tabuleiro[py][px]){
             case '0':
