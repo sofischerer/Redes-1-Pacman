@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "color.h"
+#include "tesoura.h"
 #include "server.h"
 
 void criar_jogo(FILE* entrada, type_board* jogo){
@@ -130,24 +131,24 @@ void vira_fan(personagem* chara, char c){
     }
 }
 
-int move_pac(type_board* jogo, int key){
+int move_pac(type_board* jogo, uint8_t key){
     int px = jogo->P.pos.x;
     int py = jogo->P.pos.y;
     /* armazena temporariamente a nova posicao */
     switch( key){
-        case KEY_W:
+        case INSTR_MOVE_UP:
             py--;
             jogo->P.dir = UP;
             break;
-        case KEY_A:
+        case INSTR_MOVE_LEFT:
             px--;
             jogo->P.dir = LEFT;
             break;
-        case KEY_D:
+        case INSTR_MOVE_RIGHT:
             px++;
             jogo->P.dir = RIGHT;
             break;
-        case KEY_S:
+        case INSTR_MOVE_DOWN:
             py++;
             jogo->P.dir = DOWN;
             break;

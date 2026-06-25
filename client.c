@@ -87,11 +87,13 @@ void print_view(char** view){
         printf("\n");
     }
 }
-void read_board(FILE* entrada, char** saida){
+void read_board(char* nomearquivo, char** saida){
+    FILE *fp = fopen(nomearquivo, "r");
     char linha[100];
     for (int i=0; i<40; i++){
-        fgets(linha, 100, entrada);
+        fgets(linha, 100, fp);
         for (int j=0; j<40; j++)
             saida[i][j] = linha[2*j];
     }
+    fclose(fp);
 }

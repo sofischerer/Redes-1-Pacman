@@ -7,6 +7,7 @@
 #include "files.h"
 #include "server.h"
 #include "client.h"
+#include "tesoura.h"
 #include "debug.h"
 
 /*----------------*/
@@ -20,6 +21,7 @@ int main(int argc, char *argv[]){
     int dist = 1;
     char carregar = '0';
     char** view;
+    char** arr;
     //Parametros
     char* arquivo = "jogo.csv";
 /*
@@ -65,8 +67,11 @@ int main(int argc, char *argv[]){
     criar_jogo(entrada, jogo);
     fclose(entrada);
     view = criar_view();
+    arr = criar_view();
     update_view(view, jogo, dist);
-    print_view(view);
+    write_board(view, "view.csv");
+    read_board("view.csv", arr);
+    print_view(arr);
     //Inicia conexão
     //int socket = cria_raw_socket(rede);
     
@@ -80,8 +85,9 @@ int main(int argc, char *argv[]){
             print_load( carregar);
             switch( carregar){
                 case '1':
-                    /* ENVIA */
-                    system( OPEN_FILE_1);
+                    envia_arquivo( FILE_1, "buffer.bin");
+                    recebe_arquivo( "buffer.bin", "temp.png");
+                    system( "open temp.png");
                     break;
                 case '2':
                     /* ENVIA */
@@ -124,7 +130,9 @@ int main(int argc, char *argv[]){
             playing = GAME_RUNNING;
             ch = 0;
             update_view(view, jogo, dist);
-            print_view(view);
+            write_board(view, "view.csv");
+            read_board("view.csv", arr);
+            print_view(arr);
         }
         while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_Q) && (ch != KEY_P)){
             ch = mygetch();
@@ -152,6 +160,7 @@ int main(int argc, char *argv[]){
                 playing = GAME_QUIT;
                 destruir_jogo(jogo);
                 destruir_view(view);
+                destruir_view(arr);
                 return 0;
             case KEY_P:
                 /* P = PAUSE/UNPAUSE */
@@ -214,7 +223,9 @@ int main(int argc, char *argv[]){
                     write_save('0', (char)dist);
                 }
             update_view(view, jogo, dist);
-            print_view(view);
+            write_board(view, "view.csv");
+            read_board("view.csv", arr);
+            print_view(arr);
             write_board(jogo->tabuleiro, "jogo.csv");
         }
     }
@@ -246,5 +257,6 @@ int main(int argc, char *argv[]){
 
     destruir_jogo(jogo);
     destruir_view(view);
+    destruir_view(arr);
     return 0;
 }

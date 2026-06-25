@@ -17,13 +17,13 @@ unsigned long long int file_size(char *name){
     return size;
 }
 
-int envia_arquivo( char* entrada, char* saida){
+int envia_arquivo( char* entrada, char* mudar){
     FILE *fp;
     char buffer[TAM_PEDACO];
     
     /* TRASH */
     FILE* fp2;
-    fp2 = fopen(saida, "wb");
+    fp2 = fopen(mudar, "wb");
     if( !fp2) return -1;
     /* ----- */
 
@@ -60,7 +60,7 @@ int envia_arquivo( char* entrada, char* saida){
     return 0;
 }
 
-int recebe_arquivo( char* entrada, char* saida){
+int recebe_arquivo( char* mudar, char* saida){
     char buffer[TAM_PEDACO];
     FILE* fp2;
     fp2 = fopen(saida, "wb");
@@ -68,11 +68,11 @@ int recebe_arquivo( char* entrada, char* saida){
     
     /* TRASH */
     FILE *fp;
-    fp = fopen(entrada, "rb");
+    fp = fopen(mudar, "rb");
     if( !fp) return -1;
     /* ----- */
 
-    unsigned long long int max = file_size(entrada) / TAM_PEDACO;
+    unsigned long long int max = file_size(mudar) / TAM_PEDACO;
     for (unsigned long long int i = 0; i < max; i++){
         if( fread( buffer, sizeof( char), TAM_PEDACO, fp)){
 
@@ -104,6 +104,9 @@ int recebe_arquivo( char* entrada, char* saida){
     return 0;
 }
 
-int main(){
-    
+uint_8 envia_instrucao( uint8_t instr){
+    return 0x00;
+}
+uint_8 recebe_instrucao( ){
+    return 0x00;
 }

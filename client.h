@@ -22,6 +22,6 @@ void print_win();
 void print_gameover();
 void print_load(char c);
 void print_view(char** view);
-void read_board(FILE* entrada, char** saida);
+void read_board(char* nomearquivo, char** saida);
 
 #endif

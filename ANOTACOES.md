@@ -1,12 +1,10 @@
 ## ANOTAÇÕES
-- inclui um makefile, dá um "make single" pra rodar
-    - "./pacman -new" pra resetar o jogo
+- inclui um makefile, o "make" sozinho só imprime as opções de make
+    - "./pacman -new" pra resetar o jogo (atualmente só funciona no single)
     - ./pacman pra carregar
 
 #### MOVIMENTO
 - pacman anda com ASDW
-    - a ideia é enviar um char (minúsculo) pro servidor
-        - o servidor recebe o char e calcula posicoes etc.
 - fantasmas viram apenas quando batem na parede
     - vermelho: sentido horário
     - azul: sentido anti-horário
@@ -19,11 +17,18 @@
 - ao dar um ./pacman -new , o jogo cria um jogo.csv
     - esse jogo.csv é sobrescrito em cada rodada
 - VIEW: uma matriz 40x40 com só o raio do pacman visível
-    - a ideia é enviar só a view pro cliente
+    - o jogo faz um .csv e manda pro cliente
         - o cliente imprime
 
-#### OUTROS
-subtituir funçoes no modelo final:
-- mygetch (lê input sem precisar de enter)
-- todas as funcoes de print_ 
-- dá um CTRL + F em ENVIAR
+# IMPORTANTE
+
+- o game.c é a main do servidor
+- o main.c é a main do cliente
+
+- alterar funçoes:
+    - tesoura.c , tesoura.h : colocar parâmetros do socket
+    - game.c , main.c : dar CTRL + F e colocar ^
+        - envia_instrucao
+        - recebe_instrucao
+        - envia_arquivo
+        - recebe_arquivo
