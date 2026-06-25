@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>      // Necessário para strncpy e memcpy
 #include <sys/ioctl.h>   // Necessário para ioctl
 #include <net/if.h>      // Necessário para struct ifreq
@@ -21,6 +22,10 @@ int main(int argc, char *argv[]){
     uint8_t mac_dest[6];
     uint8_t meu_mac[6]; // Array para guardar o MAC da minha máquina
 
+    uint8_t** matriz = calloc(12, sizeof(uint8_t*));
+    for (int i=0; i<12; i++) matriz[i] = calloc(31, sizeof(uint8_t));
+    int tam_janela = 5;
+    
     // --- PARTE NOVA: Pegando o MAC da máquina ---
     struct ifreq ifr;
     // Copia o nome da interface para a estrutura de requisição
@@ -35,29 +40,28 @@ int main(int argc, char *argv[]){
     // Copia os 6 bytes do MAC retornado para a nossa variável meu_mac
     memcpy(meu_mac, ifr.ifr_hwaddr.sa_data, 6);
 
-    // Mostra o MAC obtido no terminal para conferência
-    printf("MAC obtido (%s): %02x:%02x:%02x:%02x:%02x:%02x\n", interface,
-           meu_mac[0], meu_mac[1], meu_mac[2], meu_mac[3], meu_mac[4], meu_mac[5]);
-    // --------------------------------------------
-
     if (argv[1][0] == '0'){
-
         // uint8_t dados[5] = {0xDE, 0xAD, 0xBE, 0xEF, 0x01};
-        uint8_t matriz[5][31] = {0};
         int tamanhos[5] = {31, 5, 2, 1, 15};
         int tipos[5] = {15};
         int sequencias[5] = {31};
-        int tam_janela = 5;
 
         // Agora você pode passar 'meu_mac' como parâmetro se a sua função envia_pacote aceitar
-        int wa = transmissao((uint8_t**)matriz, tamanhos, 0, tipos, sock, interface, bcast, meu_mac, tam_janela);
-        printf("%d\n", wa);
+        int wa = transmissao(matriz, tamanhos, 0, tipos, sock, interface, bcast, meu_mac, tam_janela);
+        printf("new seq%d\n", wa);
+
+        wa = transmissao(&matriz[wa], tamanhos, 6, tipos, sock, interface, bcast, meu_mac, tam_janela);
+        printf("new seq%d\n", wa);
     }
     else{
-        uint8_t dados[31] = {0};
-        while(1){
-            recebe_pacote(sock, dados, &tamanho, &sequencia, &tipo);
-        }
+        int tamanhos[5] = {0, 0, 0, 0, 0};
+        int tipos[5] = {0};
+        int sequencias[5] = {0};
+
+        receber((uint8_t**)matriz, tamanhos, tipos, sock, interface, bcast, meu_mac);
+        printf("waaaa\n");
+        receber((uint8_t**)matriz, tamanhos, tipos, sock, interface, bcast, meu_mac);
+        printf("waaaa\n");
     }
     
     return 0;

@@ -113,7 +113,7 @@ void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int ti
 
     //Transfere o header e os dados para o buffer
     memcpy(buffer, &header, header_size);
-    memcpy(buffer+header_size, dados, tamanho);
+    if(tamanho != 0)memcpy(buffer+header_size, dados, tamanho);
 
     //Calcula o CRC e coloca no buffer
     buffer[header_size+tamanho] = calcular_crc(buffer, header_size+tamanho);
@@ -197,11 +197,30 @@ int transmissao(uint8_t **dados, int *tamanhos, int seq_inicial, int *tipos, int
     int temp_tam, temp_seq, temp_tipo;
 //goto pq a mari me influencia demais
 timeout:
+    printf("teste\n");
     tentativas++;
     seq = seq_inicial;
     for (int i = 0; i<tam_janela; i++){
         if (seq > 63) seq = 0;
         else seq++;
+    //     printf("sock=%d\n", sock);
+    //     printf("nome_rede=%s\n", nome_rede);
+    //     printf("dados: ");
+    //     for (int j = 0; j < tamanhos[i]; j++) {
+    //         printf("%02X ", dados[i][j]);
+    //     }
+    //     printf("\n");
+    //     printf("tamanho=%u\n", tamanhos[i]);
+    //     printf("tipo=%u\n", tipos[i]);
+    //     printf("seq=%u\n", seq);
+
+    //     printf("MAC_dest: %u %u %u %u %u %u\n",
+    //         MAC_dest[0], MAC_dest[1], MAC_dest[2],
+    //         MAC_dest[3], MAC_dest[4], MAC_dest[5]);
+
+    //     printf("MAC_ori:  %u %u %u %u %u %u\n",
+    //    MAC_ori[0], MAC_ori[1], MAC_ori[2],
+    //    MAC_ori[3], MAC_ori[4], MAC_ori[5]);
         envia_pacote(sock, nome_rede, dados[i], tamanhos[i], tipos[i], seq, MAC_dest, MAC_ori);
     }
     if (tentativas>=TIMEOUT_LIMIT) return -1;
@@ -211,7 +230,7 @@ timeout:
     while(1){
         int resposta = recebe_pacote(sock, buffer, &temp_tam, &temp_seq, &temp_tipo);
         
-        //Verifica casos de erro
+        //Verifica possiveis
         if (now_ms() - inicio >= TIMEOUT) goto timeout;
         if (resposta == 1) continue;
         if (resposta == 0) break;
@@ -221,6 +240,32 @@ timeout:
     return ++seq;
 }
 
-int receber(uint8_t **dados, int *tamanhos, int seq_inicial, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori){
+void receber(uint8_t **dados, int *tamanhos, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori){
+    int n = 1;
+    int old_seq = -1;
+    int seq = 0;
+    while (1){
+        int resposta = recebe_pacote(sock, dados[0], &tamanhos[0], &old_seq, &tipos[0]);
+        if (resposta == 0){
+            break;
+        }
+    }
+    while (n<4){
+        //Começa a contar o timeout
+        long inicio = now_ms();
 
+        int resposta = recebe_pacote(sock, dados[n], &tamanhos[n], &seq, &tipos[n]);
+        //Verifica casos possiveis
+        if (tipos[n] == 16) break; //Fim de transmissão
+        if ((seq != (old_seq+1)) || (old_seq == 63 && seq != 0)) break; //Mensagem perdida no meio do caminho
+        if (now_ms() - inicio >= TIMEOUT) break; //Timeout
+        if (resposta == 0) n++; //Janela completa
+        old_seq = seq;
+    }
+
+    int tipo = 0;
+    //Caso de timeout
+    if (n>4 && tipos[n] != 16) tipo = 1;
+    //Envia ACK ou NACK
+    envia_pacote(sock, nome_rede, NULL, 0, tipo, seq, MAC_dest, MAC_ori);
 }
