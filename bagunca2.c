@@ -1,27 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <termios.h>
 #include <stdint.h>
-#include "network.h"
+#include <unistd.h>
+//#include "network.h"
 #include "files.h"
 #include "server.h"
+#include "client.h"
 #include "tesoura.h"
+#include "debug.h"
 
-
-
-#define TIMEOUTCMDS destruir_jogo(jogo); destruir_view(view); /* colocar destroy do network aqui */ return 0;
-
-/* LADO DO SERVIDOR */
+/*----------------*/
 
 int main(int argc, char *argv[]){
     srand(0);
-    uint8_t dir;
+    int ch;
     int playing = GAME_RUNNING;
     int andou = 0;
     int turn = 0;
     int dist = 1;
     char carregar = '0';
     char** view;
+    char** arr;
     //Parametros
     char* arquivo = "jogo.csv";
 /*
@@ -67,89 +68,125 @@ int main(int argc, char *argv[]){
     criar_jogo(entrada, jogo);
     fclose(entrada);
     view = criar_view();
+    arr = criar_view();
     update_view(view, jogo, dist);
     write_board(view, "view.csv");
-
-    if( envia_instrucao( INSTR_MANDA_BOARD) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-    if( envia_arquivo( "view.csv", "buffer2.bin") < 0){ TIMEOUTCMDS }
-
-
+    read_board("view.csv", arr);
+    print_view(arr);
+    print_jogo(jogo);
+    if( eh_jogavel( jogo) == 0){
+        printf("N JOGAVEL\n");
+        destruir_jogo(jogo);
+        destruir_view(view);
+        destruir_view(arr);
+        return 1;
+    }
     //Inicia conexão
     //int socket = cria_raw_socket(rede);
     
     
     
     //Começar jogo
-    while(( playing == GAME_RUNNING)){
+    while(( playing == GAME_RUNNING) || (playing == GAME_PAUSED)){
         /* carrega itens */
         if( carregar > '0'){
             write_save( carregar, (char)dist);
-            if( envia_instrucao( INSTR_MANDA_ARQUIVO) == INSTR_TIMEOUT){ TIMEOUTCMDS }
+            print_load( carregar);
             switch( carregar){
                 case '1':
-                    if( envia_instrucao( INSTR_ARQ_PAS_1) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_1, "buffer.bin") < 0){ TIMEOUTCMDS }
+                    envia_arquivo( FILE_1, "buffer.bin");
+                    recebe_arquivo( "buffer.bin", "temp.png");
+                    system( "open temp.png");
                     break;
                 case '2':
-                    if( envia_instrucao( INSTR_ARQ_PAS_2) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_2, "buffer.bin") < 0){ TIMEOUTCMDS }
+                    /* ENVIA */
+                    system( OPEN_FILE_2);
                     break;
                 case '3':
-                    if( envia_instrucao( INSTR_ARQ_PAS_3) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_3, "buffer.bin") < 0){ TIMEOUTCMDS }
+                    /* ENVIA */
+                    system( OPEN_FILE_3);
                     break;
                 case '4':
-                    if( envia_instrucao( INSTR_ARQ_PAS_4) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_4, "buffer.bin") < 0){ TIMEOUTCMDS }
+                    /* ENVIA */
+                    system( OPEN_FILE_4);
                     break;
                 case '5':
-                    if( envia_instrucao( INSTR_ARQ_PAS_5) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_5, "buffer.bin") < 0){ TIMEOUTCMDS }
+                    /* ENVIA */
+                    system( OPEN_FILE_5);
+                    break;
                 case '6':
-                    if( envia_instrucao( INSTR_ARQ_PAS_6) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_6, "buffer.bin") < 0){ TIMEOUTCMDS }
+                    /* ENVIA */
+                    system( OPEN_FILE_6);
                     break;
             }
             write_save('0', (char)dist);
             if( pegou_tudo(jogo)){
+                print_win();
                 destruir_jogo(jogo);
                 destruir_view(view);
                 return 0;
             }
+            playing = GAME_PAUSED;
+            print_pause();
         }
 
         /* input de tecla ASDW */
-        if( envia_instrucao( INSTR_MANDA_ASDW) == INSTR_TIMEOUT){
-            TIMEOUTCMDS
+        ch = 0;
+        if( playing == GAME_PAUSED){
+            ch = mygetch();
+            while( ch != KEY_P)
+                ch = mygetch();
+            playing = GAME_RUNNING;
+            ch = 0;
+            update_view(view, jogo, dist);
+            write_board(view, "view.csv");
+            read_board("view.csv", arr);
+            print_view(arr);
         }
-        dir = recebe_instrucao( );
-        if( dir == INSTR_TIMEOUT){
-            TIMEOUTCMDS
+        while( (ch != KEY_W) && (ch != KEY_A) && (ch != KEY_D) && (ch != KEY_S) && (ch != KEY_Q) && (ch != KEY_P)){
+            ch = mygetch();
         }
-        switch( dir){
-            case INSTR_MOVE_UP:
+        switch( ch){
+            case KEY_W:
+                /* UP */
                 jogo->P.dir = UP;
                 break;
-            case INSTR_MOVE_LEFT:
+            case KEY_A:
+                /* LEFT */
                 jogo->P.dir = LEFT;
                 break;
-            case INSTR_MOVE_RIGHT:
+            case KEY_D:
+                /* RIGHT */
                 jogo->P.dir = RIGHT;
                 break;
-            case INSTR_MOVE_DOWN:
+            case KEY_S:
+                /* DOWN */
                 jogo->P.dir = DOWN;
                 break;
-            case INSTR_MOVE_QUIT:
+            case KEY_Q:
+                /* Q = QUIT */
+                printf("\nQUIT\n");
                 playing = GAME_QUIT;
-                if( envia_instrucao( INSTR_END) == INSTR_TIMEOUT){ TIMEOUTCMDS }
                 destruir_jogo(jogo);
                 destruir_view(view);
+                destruir_view(arr);
                 return 0;
+            case KEY_P:
+                /* P = PAUSE/UNPAUSE */
+                playing = GAME_PAUSED;
+                print_pause();
+                break;
         }
 
         /* move os personagens */
         if( playing == GAME_RUNNING){ /* 0 andou; 1-6 pastilha; 8-11 fantasma */
-            andou = move_pac(jogo, dir);
+            switch( ch){
+                case KEY_A: ch = INSTR_MOVE_LEFT; break;
+                case KEY_D: ch = INSTR_MOVE_RIGHT; break;
+                case KEY_S: ch = INSTR_MOVE_DOWN; break;
+                case KEY_W: ch = INSTR_MOVE_UP; break;
+            }
+            andou = move_pac(jogo, (uint8_t)ch);
             carregar = '0';
             if( andou > 0){
                 switch( andou){
@@ -202,38 +239,39 @@ int main(int argc, char *argv[]){
                 }
             update_view(view, jogo, dist);
             write_board(view, "view.csv");
-            if( envia_instrucao( INSTR_MANDA_BOARD) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-            if( envia_arquivo( "view.csv", "buffer2.bin") < 0){ TIMEOUTCMDS }
+            read_board("view.csv", arr);
+            print_view(arr);
             write_board(jogo->tabuleiro, "jogo.csv");
         }
     }
 
     if( playing == GAME_OVER){
         write_save(carregar, (char)dist);
-        if( envia_instrucao( INSTR_MANDA_ARQUIVO) == INSTR_TIMEOUT){ TIMEOUTCMDS }
+        print_load( carregar);
         switch( carregar){
             case 'r':
-                if( envia_instrucao( INSTR_ARQ_FAN_R) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_R, "buffer.bin") < 0){ TIMEOUTCMDS }
+                /* ENVIA */
+                system( OPEN_FILE_R);
                 break;
             case 'b':
-                if( envia_instrucao( INSTR_ARQ_FAN_B) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_B, "buffer.bin") < 0){ TIMEOUTCMDS }
+                /* ENVIA */
+                system( OPEN_FILE_B);
                 break;
             case 'g':
-                if( envia_instrucao( INSTR_ARQ_FAN_G) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_G, "buffer.bin") < 0){ TIMEOUTCMDS }
+                /* ENVIA */
+                system( OPEN_FILE_G);
                 break;
             case 'y':
-                if( envia_instrucao( INSTR_ARQ_FAN_Y) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_Y, "buffer.bin") < 0){ TIMEOUTCMDS }
+                /* ENVIA */
+                system( OPEN_FILE_Y);
                 break;
         }
         write_save('0', (char)dist);
-        if( envia_instrucao( INSTR_END) == INSTR_TIMEOUT){ TIMEOUTCMDS }
+        print_gameover();
     }
 
     destruir_jogo(jogo);
     destruir_view(view);
+    destruir_view(arr);
     return 0;
 }
