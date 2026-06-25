@@ -9,7 +9,10 @@
 #include <string.h>
 #include <sys/socket.h>
 #include <stdio.h>
+#include <sys/time.h>
 
+#define TIMEOUT_LIMIT 16
+#define TIMEOUT 1000
 
 //Definição do protocolo
 //CRC é colocado manualmente depois
@@ -37,8 +40,8 @@ uint8_t calcular_crc(uint8_t *dados, size_t tamanho){
 int cria_raw_socket(char* nome_interface_rede) {
     // Cria arquivo para o socket sem qualquer protocolo
     int soquete = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    if (soquete == -1) {
-        fprintf(stderr, "Erro ao criar socket: Verifique se você é root!\n");
+        if (soquete == -1) {
+            fprintf(stderr, "Erro ao criar socket: Verifique se você é root!\n");
         exit(-1);
     }
  
@@ -114,8 +117,6 @@ void envia_pacote(int sock, char* nome_rede, uint8_t* dados, int tamanho, int ti
 
     //Calcula o CRC e coloca no buffer
     buffer[header_size+tamanho] = calcular_crc(buffer, header_size+tamanho);
-    printf("CRC = %d\n", calcular_crc(buffer, header_size+tamanho));
-    printf("CRC = %d\n", buffer[header_size+tamanho]);
 
     //Coloca o buffer no frame ETH
     memcpy(buffer_eth+sizeof(struct ethhdr), buffer, header_size+tamanho+1);
@@ -139,42 +140,87 @@ int recebe_pacote(int sock, uint8_t* dados, int* tamanho, int* sequencia, int* t
 
     int resposta = recvfrom(sock, frame, sizeof(frame), 0, (struct sockaddr *)&origem, &origem_len);
 
-    // Se o pacote foi enviado por esta mesma máquina, ignore-o
+    // Testando para retirar pacotes duplicados
     if (origem.sll_pkttype == PACKET_OUTGOING) {
-        return -1; 
+        return 1; 
     }
-
+    //Verificando se é nosso protocolo, tá sendo útil para testar na lo
     struct ethhdr *eth = (struct ethhdr *) frame;
     if (ntohs(eth->h_proto) != 0x8888) {
-        return -1;
+        return 1;
     }
+    //Destrinchando o frame eth
     uint8_t* payload = frame+sizeof(struct ethhdr);
     int payload_len = resposta-sizeof(struct ethhdr);
     struct protocolo* p = (struct protocolo*) payload;
     uint16_t cabecalho = ntohs(p->tam_seq_tip);
 
+    //Tirando os dados do nosso protocolo
     *tamanho = (cabecalho >> 11) & 0x1F;
     *sequencia = (cabecalho >> 5) & 0x3F;
     *tipo = cabecalho & 0x1F;
     memcpy(dados, payload+sizeof(struct protocolo), *tamanho);
-    int old_crc = payload[payload_len - 1];
+    
+    //Verificação de CRC
     int crc = calcular_crc(payload, payload_len-1);
+    if (crc != payload[payload_len - 1]) return -1;
 
-    // /*
+    //Prints de teste pq o debugger do meu pc está explodindo por algum motivo
+    /*
     printf("inicio = 0x%02X\n", p->inicio);
     printf("tam = %u\n", *tamanho);
     printf("seq = %u\n", *sequencia);
     printf("tip = %u\n", *tipo);
     printf("CRC recalculado: %d\n", crc);
-    printf("CRC da mensagem: %d\n",old_crc);
+    printf("CRC da mensagem: %d\n",payload[payload_len - 1]);
     for (int i = 0; i<(*tamanho); i++){
         printf("%d ", dados[i]);
     }
     printf("\n");
-    printf("CRC recalculado: %d", crc);
-    printf("CRC da mensagem: %d",old_crc);
     // */
 
     return 0;
+
+}
+
+//Função besta para pegar o horario do momento em ms
+long now_ms(){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+}
+
+int transmissao(uint8_t **dados, int *tamanhos, int seq_inicial, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori, int tam_janela){
+    int seq = seq_inicial;
+    int tentativas = 0;
+    uint8_t buffer[31] = {0};
+    int temp_tam, temp_seq, temp_tipo;
+//goto pq a mari me influencia demais
+timeout:
+    tentativas++;
+    seq = seq_inicial;
+    for (int i = 0; i<tam_janela; i++){
+        if (seq > 63) seq = 0;
+        else seq++;
+        envia_pacote(sock, nome_rede, dados[i], tamanhos[i], tipos[i], seq, MAC_dest, MAC_ori);
+    }
+    if (tentativas>=TIMEOUT_LIMIT) return -1;
+
+    //Começa a contar o timeout
+    long inicio = now_ms();
+    while(1){
+        int resposta = recebe_pacote(sock, buffer, &temp_tam, &temp_seq, &temp_tipo);
+        
+        //Verifica casos de erro
+        if (now_ms() - inicio >= TIMEOUT) goto timeout;
+        if (resposta == 1) continue;
+        if (resposta == 0) break;
+    }
+    //Se tudo está certo, verifica se recebeu bonitinho
+    if (temp_tipo == -1) return temp_seq;
+    return ++seq;
+}
+
+int receber(uint8_t **dados, int *tamanhos, int seq_inicial, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori){
 
 }
