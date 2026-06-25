@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "color.h"
 #include "tesoura.h"
 #include "server.h"
@@ -325,4 +326,44 @@ int load_save_n(){
     char c = fgetc(fp);
     fclose(fp);
     return (int)c;
+}
+
+int eh_jogavel( type_board* jogo){
+    int total = 0;
+    for( int i = 0; i < 40; i++)
+        for( int j = 0; j < 40; j++)
+            /* para todas as casas, 1. checa se tabuleiro eh jogavel */
+            if( jogo->tabuleiro[i][j] != 'X')
+                total++;
+    if( total <= 11)
+        return 0; /* nao eh jogavel */
+    return 1;
+}
+
+/* OBS. garantir que tabuleiro eh jogavel antes de chamar */
+void randomiza_board( type_board* jogo){
+    int numper = 11; /* 6 pastilhas + 4 fantasmas + pacman */
+    int x, y;
+
+    while( numper > 0){
+        x = RANDOM(40);
+        y = RANDOM(40);
+
+        if( jogo->tabuleiro[x][y] == '0'){
+            switch( numper){
+                case 11: jogo->tabuleiro[x][y] = 'P'; break;
+                case 10: jogo->tabuleiro[x][y] = 'Y'; break;
+                case 9: jogo->tabuleiro[x][y] = 'G'; break;
+                case 8: jogo->tabuleiro[x][y] = 'B'; break;
+                case 7: jogo->tabuleiro[x][y] = 'R'; break;
+                case 6: jogo->tabuleiro[x][y] = '6'; break;
+                case 5: jogo->tabuleiro[x][y] = '5'; break;
+                case 4: jogo->tabuleiro[x][y] = '4'; break;
+                case 3: jogo->tabuleiro[x][y] = '3'; break;
+                case 2: jogo->tabuleiro[x][y] = '2'; break;
+                case 1: jogo->tabuleiro[x][y] = '1'; break;
+            }
+            numper--;
+        }
+    }
 }

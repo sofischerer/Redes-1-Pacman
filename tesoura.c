@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include "tesoura.h"
 #define TAM_PEDACO (31 * sizeof(char))
 
 
@@ -104,9 +106,19 @@ int recebe_arquivo( char* mudar, char* saida){
     return 0;
 }
 
-uint_8 envia_instrucao( uint8_t instr){
+uint8_t envia_instrucao( uint8_t instr){
     return 0x00;
 }
-uint_8 recebe_instrucao( ){
+uint8_t recebe_instrucao( ){
     return 0x00;
+}
+void read_board(char* nomearquivo, char** saida){
+    FILE *fp = fopen(nomearquivo, "r");
+    char linha[100];
+    for (int i=0; i<40; i++){
+        fgets(linha, 100, fp);
+        for (int j=0; j<40; j++)
+            saida[i][j] = linha[2*j];
+    }
+    fclose(fp);
 }

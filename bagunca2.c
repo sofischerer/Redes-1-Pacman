@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <stdint.h>
 #include <unistd.h>
 //#include "network.h"
 #include "files.h"
@@ -72,6 +73,14 @@ int main(int argc, char *argv[]){
     write_board(view, "view.csv");
     read_board("view.csv", arr);
     print_view(arr);
+    print_jogo(jogo);
+    if( eh_jogavel( jogo) == 0){
+        printf("N JOGAVEL\n");
+        destruir_jogo(jogo);
+        destruir_view(view);
+        destruir_view(arr);
+        return 1;
+    }
     //Inicia conexão
     //int socket = cria_raw_socket(rede);
     
@@ -171,7 +180,13 @@ int main(int argc, char *argv[]){
 
         /* move os personagens */
         if( playing == GAME_RUNNING){ /* 0 andou; 1-6 pastilha; 8-11 fantasma */
-            andou = move_pac(jogo, ch);
+            switch( ch){
+                case KEY_A: ch = INSTR_MOVE_LEFT; break;
+                case KEY_D: ch = INSTR_MOVE_RIGHT; break;
+                case KEY_S: ch = INSTR_MOVE_DOWN; break;
+                case KEY_W: ch = INSTR_MOVE_UP; break;
+            }
+            andou = move_pac(jogo, (uint8_t)ch);
             carregar = '0';
             if( andou > 0){
                 switch( andou){

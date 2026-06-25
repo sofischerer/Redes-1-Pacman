@@ -41,5 +41,6 @@ uint8_t envia_instrucao( uint8_t instr);
 uint8_t recebe_instrucao( );
 int envia_arquivo( char* entrada, char* mudar);
 int recebe_arquivo( char* mudar, char* saida);
+void read_board(char* nomearquivo, char** saida);
 
 #endif

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <termios.h>
 #include <unistd.h>
+#include <stdint.h>
 #include "network.h"
 #include "files.h"
 #include "client.h"
@@ -13,6 +14,7 @@
 /* LADO DO CLIENTE */
     
 int main(int argc, char *argv[]){
+    char* trash = {"trash"};
 /*
     char* rede = "lo";
     int debug = 0;
@@ -50,43 +52,43 @@ int main(int argc, char *argv[]){
 
             codarquivo = recebe_instrucao( );
             switch( codarquivo){
-                INSTR_ARQ_FAN_1:
+                case INSTR_ARQ_PAS_1:
                     if( recebe_arquivo( trash, FILE_1) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_1);
                     break;
-                INSTR_ARQ_FAN_2:
+                case INSTR_ARQ_PAS_2:
                     if( recebe_arquivo( trash, FILE_2) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_2);
                     break;
-                INSTR_ARQ_FAN_3:
+                case INSTR_ARQ_PAS_3:
                     if( recebe_arquivo( trash, FILE_3) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_3);
                     break;
-                INSTR_ARQ_FAN_4:
+                case INSTR_ARQ_PAS_4:
                     if( recebe_arquivo( trash, FILE_4) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_4);
                     break;
-                INSTR_ARQ_FAN_5:
+                case INSTR_ARQ_PAS_5:
                     if( recebe_arquivo( trash, FILE_5) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_5);
                     break;
-                INSTR_ARQ_FAN_6:
+                case INSTR_ARQ_PAS_6:
                     if( recebe_arquivo( trash, FILE_6) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_6);
                     break;
-                INSTR_ARQ_FAN_R:
+                case INSTR_ARQ_FAN_R:
                     if( recebe_arquivo( trash, FILE_R) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_R);
                     break;
-                INSTR_ARQ_FAN_B:
+                case INSTR_ARQ_FAN_B:
                     if( recebe_arquivo( trash, FILE_B) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_B);
                     break;
-                INSTR_ARQ_FAN_G:
+                case INSTR_ARQ_FAN_G:
                     if( recebe_arquivo( trash, FILE_G) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_G);
                     break;
-                INSTR_ARQ_FAN_Y:
+                case INSTR_ARQ_FAN_Y:
                     if( recebe_arquivo( trash, FILE_Y) < 1){ TIMEOUTCMDSCLIENT }
                     system( OPEN_FILE_Y);
                     break;

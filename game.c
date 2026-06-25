@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 #include "network.h"
 #include "files.h"
 #include "server.h"
@@ -201,7 +202,6 @@ int main(int argc, char *argv[]){
                 }
             update_view(view, jogo, dist);
             write_board(view, "view.csv");
-            read_board("view.csv", arr);
             if( envia_instrucao( INSTR_MANDA_BOARD) == INSTR_TIMEOUT){ TIMEOUTCMDS }
             if( envia_arquivo( "view.csv", "buffer2.bin") < 0){ TIMEOUTCMDS }
             write_board(jogo->tabuleiro, "jogo.csv");

@@ -57,7 +57,7 @@ void criar_jogo(FILE* entrada, type_board* jogo);
 void destruir_jogo(type_board* jogo);
 void anda_interno(type_board* jogo, personagem* chara, char c);
 void vira_fan(personagem* chara, char c);
-int move_pac(type_board* jogo, int key);
+int move_pac(type_board* jogo, uint8_t key);
 int move_fan(type_board* jogo, personagem* chara, char c);
 int pegou_tudo(type_board* jogo);
 char** criar_view();
@@ -67,5 +67,7 @@ int write_board(char** a, char* saida);
 int write_save(char c, char n);
 char load_save_c();
 int load_save_n();
+int eh_jogavel(type_board* jogo);
+void randomiza_board(type_board* jogo);
 
 #endif
