@@ -175,15 +175,16 @@ long now_ms(){
     return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-int transmissao(uint8_t **dados, int *tamanhos, int seq_inicial, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori, int tam_janela){
-    int seq = seq_inicial;
+int transmissao(uint8_t **dados, int *tamanhos, int *seq_inicial, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori, int tam_janela){
+    int tmp = *seq_inicial;
+    int seq = *seq_inicial;
     int tentativas = 0;
     uint8_t buffer[31] = {0};
     int temp_tam, temp_seq, temp_tipo;
 //goto pq a mari me influencia demais
 timeout:
     tentativas++;
-    seq = seq_inicial;
+    seq = *seq_inicial;
     for (int i = 0; i<tam_janela; i++){
         if (seq > 63) seq = 0;
         else seq++;
@@ -202,21 +203,22 @@ timeout:
         if (resposta == 0) break;
     }
     //Se tudo está certo, verifica se recebeu bonitinho
-    if (temp_tipo == -1) return temp_seq;
-    return ++seq;
+    if (temp_tipo == -1) *seq_inicial = tmp;
+    else *seq_inicial = ++seq;
+    return 0;
 }
 
-void receber(uint8_t **dados, int *tamanhos, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori){
-    int n = 1;
+void receber(uint8_t **dados, int *tamanhos, int *tipos, int sock, char * nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori, int tam_janela){
+    int n = 0;
     int old_seq = -1;
     int seq = 0;
-    while (1){
-        int resposta = recebe_pacote(sock, dados[0], &tamanhos[0], &old_seq, &tipos[0]);
-        if (resposta == 0){
-            break;
-        }
-    }
-    while (n<4){
+    // while (1){
+    //     int resposta = recebe_pacote(sock, dados[0], &tamanhos[0], &old_seq, &tipos[0]);
+    //     if (resposta == 0){
+    //         break;
+    //     }
+    // }
+    while (n<tam_janela){
         //Começa a contar o timeout
         long inicio = now_ms();
 
@@ -231,7 +233,7 @@ void receber(uint8_t **dados, int *tamanhos, int *tipos, int sock, char * nome_r
 
     int tipo = 0;
     //Caso de timeout
-    if (n>4 && tipos[n] != 16) tipo = 1;
+    if (n>tam_janela && tipos[n] != 16) tipo = 1;
     //Envia ACK ou NACK
     envia_pacote(sock, nome_rede, NULL, 0, tipo, seq, MAC_dest, MAC_ori);
 }

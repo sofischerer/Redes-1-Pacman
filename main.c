@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <net/if.h>
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
@@ -9,25 +10,28 @@
 #include "client.h"
 #include "tesoura.h"
 
-#define TIMEOUTCMDSCLIENT for (int i=0; i<40; i++) free(view[i]); free(view); /* colocar destroy do network aqui */ return 0;
+#define TIMEOUTCMDSCLIENT for (int i=0; i<40; i++) free(view[i]); free(view); return 0;
 
 /* LADO DO CLIENTE */
     
 int main(int argc, char *argv[]){
     char* trash = {"trash"};
-/*
     char* rede = "lo";
+/*
     int debug = 0;
 */
+
+
+    
 
     for (int i = 1; i < argc; i++) {
 /*
         if (strcmp(argv[i], "-debug") == 0) {
             debug = 1;
         }
-        else if (strcmp(argv[i], "-rede") == 0 && i + 1 < argc) {
+        else */if (strcmp(argv[i], "-rede") == 0 && i + 1 < argc) {
             rede = argv[++i];
-        }
+        }/*
         else if (strcmp(argv[i], "-mapa") == 0 && i + 1 < argc) {
             *arquivo = argv[++i];
         }
@@ -41,6 +45,14 @@ int main(int argc, char *argv[]){
     system( " touch view.csv");
 
     uint8_t instr, codarquivo;
+
+    //Resquicios de uma tentativa de deixar o código mais versátil
+    uint8_t bcast[6] = {0xff,0xff,0xff,0xff,0xff,0xff};
+    uint8_t meu_mac[6];
+    struct ifreq ifr;
+    strncpy(ifr.ifr_name, rede, IFNAMSIZ - 1);
+    memcpy(meu_mac, ifr.ifr_hwaddr.sa_data, 6);
+
     int rodando = 1;
     while(rodando == 1){
         /* recebe instrucao se prox envio eh arquivo ou view */

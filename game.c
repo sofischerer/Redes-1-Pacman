@@ -1,3 +1,4 @@
+#include <net/if.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,13 +10,13 @@
 
 
 
-#define TIMEOUTCMDS destruir_jogo(jogo); destruir_view(view); /* colocar destroy do network aqui */ return 0;
+#define TIMEOUTCMDS destruir_jogo(jogo); destruir_view(view); return 0;
 
 /* LADO DO SERVIDOR */
 
 int main(int argc, char *argv[]){
     srand(0);
-    uint8_t dir;
+    int dir;
     int playing = GAME_RUNNING;
     int andou = 0;
     int turn = 0;
@@ -24,8 +25,15 @@ int main(int argc, char *argv[]){
     char** view;
     //Parametros
     char* arquivo = "jogo.csv";
-/*
     char* rede = "lo";
+
+    //Resquicios de uma tentativa de deixar o código mais versátil
+    uint8_t bcast[6] = {0xff,0xff,0xff,0xff,0xff,0xff};
+    uint8_t meu_mac[6];
+    struct ifreq ifr;
+    strncpy(ifr.ifr_name, rede, IFNAMSIZ - 1);
+    memcpy(meu_mac, ifr.ifr_hwaddr.sa_data, 6);
+/*
     int debug = 0;
 */
 
@@ -34,9 +42,9 @@ int main(int argc, char *argv[]){
         if (strcmp(argv[i], "-debug") == 0) {
             debug = 1;
         }
-        else if (strcmp(argv[i], "-rede") == 0 && i + 1 < argc) {
+        else*/ if (strcmp(argv[i], "-rede") == 0 && i + 1 < argc) {
             rede = argv[++i];
-        }
+        }/*
         else if (strcmp(argv[i], "-mapa") == 0 && i + 1 < argc) {
             *arquivo = argv[++i];
         }
@@ -70,45 +78,37 @@ int main(int argc, char *argv[]){
     update_view(view, jogo, dist);
     write_board(view, "view.csv");
 
-    if( envia_instrucao( INSTR_MANDA_BOARD) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-    if( envia_arquivo( "view.csv", "buffer2.bin") < 0){ TIMEOUTCMDS }
+    //Cria socket
+    int sock = cria_raw_socket(rede);
 
-
-    //Inicia conexão
-    //int socket = cria_raw_socket(rede);
-    
+    //Inicializa
+    if(envia_instrucao(INICIALIZACAO, view, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
     
     
     //Começar jogo
-    while(( playing == GAME_RUNNING)){
+    while(playing == GAME_RUNNING){
         /* carrega itens */
         if( carregar > '0'){
             write_save( carregar, (char)dist);
-            if( envia_instrucao( INSTR_MANDA_ARQUIVO) == INSTR_TIMEOUT){ TIMEOUTCMDS }
             switch( carregar){
-                case '1':
-                    if( envia_instrucao( INSTR_ARQ_PAS_1) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_1, "buffer.bin") < 0){ TIMEOUTCMDS }
-                    break;
-                case '2':
-                    if( envia_instrucao( INSTR_ARQ_PAS_2) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_2, "buffer.bin") < 0){ TIMEOUTCMDS }
-                    break;
-                case '3':
-                    if( envia_instrucao( INSTR_ARQ_PAS_3) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_3, "buffer.bin") < 0){ TIMEOUTCMDS }
-                    break;
-                case '4':
-                    if( envia_instrucao( INSTR_ARQ_PAS_4) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_4, "buffer.bin") < 0){ TIMEOUTCMDS }
-                    break;
-                case '5':
-                    if( envia_instrucao( INSTR_ARQ_PAS_5) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_5, "buffer.bin") < 0){ TIMEOUTCMDS }
-                case '6':
-                    if( envia_instrucao( INSTR_ARQ_PAS_6) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                    if( envia_arquivo( FILE_6, "buffer.bin") < 0){ TIMEOUTCMDS }
-                    break;
+            case '1':
+                if( envia_instrucao(TXT, FILE_1, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                break;
+            case '2':
+                if( envia_instrucao(TXT, FILE_2, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                break;
+            case '3':
+                if( envia_instrucao(JPG, FILE_3, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                break;
+            case '4':
+                if( envia_instrucao(JPG, FILE_4, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                break;
+            case '5':
+                if( envia_instrucao(MP4, FILE_5, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                break;
+            case '6':
+                if( envia_instrucao(MP4, FILE_6, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                break;
             }
             write_save('0', (char)dist);
             if( pegou_tudo(jogo)){
@@ -118,33 +118,26 @@ int main(int argc, char *argv[]){
             }
         }
 
-        /* input de tecla ASDW */
-        if( envia_instrucao( INSTR_MANDA_ASDW) == INSTR_TIMEOUT){
-            TIMEOUTCMDS
-        }
-        dir = recebe_instrucao( );
-        if( dir == INSTR_TIMEOUT){
-            TIMEOUTCMDS
-        }
+        // /* input de tecla ASDW */
+        // if( envia_instrucao( INSTR_MANDA_ASDW) == COD_TIMEOUT){
+        //     TIMEOUTCMDS
+        // }
+
+        dir = recebe_instrucao(NULL, sock, rede, bcast, meu_mac);
+        if( dir == COD_TIMEOUT){ TIMEOUTCMDS }
         switch( dir){
-            case INSTR_MOVE_UP:
+            case CIMA:
                 jogo->P.dir = UP;
                 break;
-            case INSTR_MOVE_LEFT:
+            case ESQUERDA:
                 jogo->P.dir = LEFT;
                 break;
-            case INSTR_MOVE_RIGHT:
+            case DIREITA:
                 jogo->P.dir = RIGHT;
                 break;
-            case INSTR_MOVE_DOWN:
+            case BAIXO:
                 jogo->P.dir = DOWN;
                 break;
-            case INSTR_MOVE_QUIT:
-                playing = GAME_QUIT;
-                if( envia_instrucao( INSTR_END) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                destruir_jogo(jogo);
-                destruir_view(view);
-                return 0;
         }
 
         /* move os personagens */
@@ -202,35 +195,29 @@ int main(int argc, char *argv[]){
                 }
             update_view(view, jogo, dist);
             write_board(view, "view.csv");
-            if( envia_instrucao( INSTR_MANDA_BOARD) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-            if( envia_arquivo( "view.csv", "buffer2.bin") < 0){ TIMEOUTCMDS }
+            if( envia_instrucao(VISUALIZACAO, view, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
             write_board(jogo->tabuleiro, "jogo.csv");
         }
     }
 
     if( playing == GAME_OVER){
         write_save(carregar, (char)dist);
-        if( envia_instrucao( INSTR_MANDA_ARQUIVO) == INSTR_TIMEOUT){ TIMEOUTCMDS }
         switch( carregar){
             case 'r':
-                if( envia_instrucao( INSTR_ARQ_FAN_R) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_R, "buffer.bin") < 0){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_R, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case 'b':
-                if( envia_instrucao( INSTR_ARQ_FAN_B) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_B, "buffer.bin") < 0){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_B, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case 'g':
-                if( envia_instrucao( INSTR_ARQ_FAN_G) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_G, "buffer.bin") < 0){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_G, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case 'y':
-                if( envia_instrucao( INSTR_ARQ_FAN_Y) == INSTR_TIMEOUT){ TIMEOUTCMDS }
-                if( envia_arquivo( FILE_Y, "buffer.bin") < 0){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_Y, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
         }
         write_save('0', (char)dist);
-        if( envia_instrucao( INSTR_END) == INSTR_TIMEOUT){ TIMEOUTCMDS }
+        if( envia_instrucao(END, NULL, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
     }
 
     destruir_jogo(jogo);
