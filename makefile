@@ -20,4 +20,4 @@ single: debug.o server.o client.o tesoura.o
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f pacman jogo.csv *.o
+	rm -f GRR_20234264_ jogo.csv *.o
