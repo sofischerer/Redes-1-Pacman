@@ -7,13 +7,13 @@ all:
 	echo "\n\n    DIGITE\n        make server\n        make client\n        make single (versao para testes apenas)\n"
 
 server: network.o server.o tesoura.o
-	$(CC) $(CFLAGS) -o pacman game.c network.o server.o tesoura.o
+	$(CC) $(CFLAGS) -o GRR_20234264_ game.c network.o server.o tesoura.o
 
 client: network.o client.o tesoura.o
-	$(CC) $(CFLAGS) -o pacman main.c network.o client.o tesoura.o
+	$(CC) $(CFLAGS) -o GRR_20234264_ main.c network.o client.o tesoura.o
 
 single: debug.o server.o client.o tesoura.o
-	$(CC) $(CFLAGS) -o pacman bagunca2.c debug.o server.o client.o tesoura.o
+	$(CC) $(CFLAGS) -o GRR_20234264_ bagunca2.c debug.o server.o client.o tesoura.o
 	echo "\nversao teste SEM cliente-servidor"
 
 %.o: %.c
