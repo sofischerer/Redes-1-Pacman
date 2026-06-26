@@ -6,9 +6,6 @@
 #include "network.h"
 #define TAM_PEDACO (31 * sizeof(char))
 
-
-static const uint8_t BCAST[6] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
-
 unsigned long long int file_size(char *name){
     FILE *fp = fopen(name, "rb");
 
@@ -78,7 +75,7 @@ int envia_arquivo( char* entrada, int sock, char* nome_rede, uint8_t* MAC_dest, 
 
     }
     if (j != 0){
-        status = transmissao(janela, tamanhos, seq, tipos, sock, nome_rede, MAC_dest, MAC_ori, 5);
+        status = transmissao(janela, tamanhos, &seq, tipos, sock, nome_rede, MAC_dest, MAC_ori, 5);
         if (status == -1) return -1;
     }
 
@@ -87,7 +84,6 @@ int envia_arquivo( char* entrada, int sock, char* nome_rede, uint8_t* MAC_dest, 
     /* ----- */
 
     fclose(fp);
-    ;;fdsf
     return 0;
 }
 
@@ -152,7 +148,7 @@ int recebe_arquivo(char* saida, int sock, char* nome_rede, uint8_t* MAC_dest, ui
     return 0;
 }
 
-int envia_instrucao(uint8_t instr, void* obj, int sock, char* nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori){
+int envia_instrucao(uint8_t instr, void* obj, int sock, char* nome_rede, uint8_t *MAC_dest, uint8_t *MAC_ori, int tipo){
     int tamanhos[5] = {0};
     int tipos[5] = {0};
     int seq = 0;
@@ -162,17 +158,22 @@ int envia_instrucao(uint8_t instr, void* obj, int sock, char* nome_rede, uint8_t
 
     //Inicia comunicação
     tipos[0] = instr;
-    if (transmissao(NULL, tamanhos, &seq, tipos, sock, nome_rede, MAC_dest, MAC_ori, 1) == -1) return COD_TIMEOUT;
 
     //Achei que ia precisar tratar caso a caso mas é tudo igual, por isso comecei com switch case e acabei com um if grande, preguiça de mudar, funciona
     switch (instr) {
         case 2: //Visualizacao
         case 3: //Inicialização
+            if (envia_arquivo(obj, sock, nome_rede, MAC_dest, MAC_ori) == COD_TIMEOUT) return COD_TIMEOUT;
         case 5: //TXT
         case 6: //JPG
         case 7: //MP4
+        buffer[0][0]=tipo;
+            if (transmissao(buffer, tamanhos, &seq, tipos, sock, nome_rede, MAC_dest, MAC_ori, 1) == -1) return COD_TIMEOUT;
             //Manda arquivo
             if (envia_arquivo(obj, sock, nome_rede, MAC_dest, MAC_ori) == COD_TIMEOUT) return COD_TIMEOUT;
+            break;
+        default:
+            if (transmissao(NULL, tamanhos, &seq, tipos, sock, nome_rede, MAC_dest, MAC_ori, 1) == -1) return COD_TIMEOUT;
             break;
     }
 }
@@ -185,8 +186,9 @@ int recebe_instrucao(char* saida, int sock, char* nome_rede, uint8_t *MAC_dest, 
 
     //Inicia comunicação
     receber(buffer, tamanhos, tipos, sock, nome_rede, MAC_dest, MAC_ori, 1);
+    if(tipos[0]>3 && tipos[0]<8) return buffer[0][0];
     //Transferencia de dados caso necessario
-    if (tipos[0]>1 && tipos[0]<8){
+    if (tipos[0] == 4){
         if (recebe_arquivo(saida, sock, nome_rede, MAC_dest, MAC_ori) == COD_TIMEOUT) return COD_TIMEOUT;
     }
     else{

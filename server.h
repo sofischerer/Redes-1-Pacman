@@ -1,3 +1,4 @@
+#include <stdint.h>
 #ifndef SERVER_H
 #define SERVER_H
 

@@ -137,19 +137,19 @@ int move_pac(type_board* jogo, uint8_t key){
     int py = jogo->P.pos.y;
     /* armazena temporariamente a nova posicao */
     switch( key){
-        case INSTR_MOVE_UP:
+        case CIMA:
             py--;
             jogo->P.dir = UP;
             break;
-        case INSTR_MOVE_LEFT:
+        case ESQUERDA:
             px--;
             jogo->P.dir = LEFT;
             break;
-        case INSTR_MOVE_RIGHT:
+        case DIREITA:
             px++;
             jogo->P.dir = RIGHT;
             break;
-        case INSTR_MOVE_DOWN:
+        case BAIXO:
             py++;
             jogo->P.dir = DOWN;
             break;

@@ -82,7 +82,7 @@ int main(int argc, char *argv[]){
     int sock = cria_raw_socket(rede);
 
     //Inicializa
-    if(envia_instrucao(INICIALIZACAO, view, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+    if(envia_instrucao(INICIALIZACAO, view, sock, rede, bcast, meu_mac, 0) == COD_TIMEOUT){ TIMEOUTCMDS }
     
     
     //Começar jogo
@@ -90,24 +90,25 @@ int main(int argc, char *argv[]){
         /* carrega itens */
         if( carregar > '0'){
             write_save( carregar, (char)dist);
+            if (envia_instrucao(ARQ, NULL, sock, rede, bcast, meu_mac, 0) == COD_TIMEOUT) { TIMEOUTCMDS };
             switch( carregar){
             case '1':
-                if( envia_instrucao(TXT, FILE_1, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(TXT, FILE_1, sock, rede, bcast, meu_mac, 1) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case '2':
-                if( envia_instrucao(TXT, FILE_2, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(TXT, FILE_2, sock, rede, bcast, meu_mac, 2) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case '3':
-                if( envia_instrucao(JPG, FILE_3, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_3, sock, rede, bcast, meu_mac, 3) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case '4':
-                if( envia_instrucao(JPG, FILE_4, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_4, sock, rede, bcast, meu_mac, 4) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case '5':
-                if( envia_instrucao(MP4, FILE_5, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(MP4, FILE_5, sock, rede, bcast, meu_mac,5) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case '6':
-                if( envia_instrucao(MP4, FILE_6, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(MP4, FILE_6, sock, rede, bcast, meu_mac,6) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             }
             write_save('0', (char)dist);
@@ -118,10 +119,8 @@ int main(int argc, char *argv[]){
             }
         }
 
-        // /* input de tecla ASDW */
-        // if( envia_instrucao( INSTR_MANDA_ASDW) == COD_TIMEOUT){
-        //     TIMEOUTCMDS
-        // }
+        /* input de tecla ASDW */
+        if( envia_instrucao(MOVE, NULL, sock, rede, bcast, meu_mac, 0) == COD_TIMEOUT){ TIMEOUTCMDS }
 
         dir = recebe_instrucao(NULL, sock, rede, bcast, meu_mac);
         if( dir == COD_TIMEOUT){ TIMEOUTCMDS }
@@ -195,29 +194,30 @@ int main(int argc, char *argv[]){
                 }
             update_view(view, jogo, dist);
             write_board(view, "view.csv");
-            if( envia_instrucao(VISUALIZACAO, view, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+            if( envia_instrucao(VISUALIZACAO, view, sock, rede, bcast, meu_mac, 0) == COD_TIMEOUT){ TIMEOUTCMDS }
             write_board(jogo->tabuleiro, "jogo.csv");
         }
     }
 
     if( playing == GAME_OVER){
         write_save(carregar, (char)dist);
+        if (envia_instrucao(ARQ, NULL, sock, rede, bcast, meu_mac, 0) == COD_TIMEOUT) { TIMEOUTCMDS }
         switch( carregar){
             case 'r':
-                if( envia_instrucao(JPG, FILE_R, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_R, sock, rede, bcast, meu_mac, 7) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case 'b':
-                if( envia_instrucao(JPG, FILE_B, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_B, sock, rede, bcast, meu_mac, 8) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case 'g':
-                if( envia_instrucao(JPG, FILE_G, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_G, sock, rede, bcast, meu_mac, 9) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
             case 'y':
-                if( envia_instrucao(JPG, FILE_Y, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+                if( envia_instrucao(JPG, FILE_Y, sock, rede, bcast, meu_mac, 10) == COD_TIMEOUT){ TIMEOUTCMDS }
                 break;
         }
         write_save('0', (char)dist);
-        if( envia_instrucao(END, NULL, sock, rede, bcast, meu_mac) == COD_TIMEOUT){ TIMEOUTCMDS }
+        if( envia_instrucao(END, NULL, sock, rede, bcast, meu_mac, 0) == COD_TIMEOUT){ TIMEOUTCMDS }
     }
 
     destruir_jogo(jogo);
